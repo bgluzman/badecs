@@ -17,6 +17,7 @@ class EntityStorage {};
 class ComponentStorage {
 public:
   template <Component T> static ComponentId getComponentId();
+  template <Component T> bool               has(EntityId entityId);
   template <Component T> T&                 get(EntityId entityId);
   template <Component T> void set(EntityId entityId, const T& value);
 
@@ -47,6 +48,7 @@ public:
   Entity& operator=(const Entity&) = delete;
   Entity& operator=(Entity&&) noexcept = delete;
 
+  template <Component T> bool has();
   template <Component T> T&   get();
   template <Component T> void set(const T& value);
   template <Component T> void remove();
@@ -61,6 +63,16 @@ class World {};
 template <Component T> ComponentId ComponentStorage::getComponentId() {
   static ComponentId id = kComponentIdCounter++;
   return id;
+}
+
+template <Component T> bool ComponentStorage::has(EntityId entityId) {
+  ComponentId componentId = getComponentId<T>();
+  if (auto columns_it = columns_.find(componentId);
+      columns_it != columns_.end()) {
+    Column& column = columns_it->second;
+    return column.index.contains(entityId);
+  }
+  return false;
 }
 
 template <Component T> T& ComponentStorage::get(EntityId entityId) {
@@ -96,6 +108,8 @@ void ComponentStorage::set(EntityId entityId, const T& value) {
 
 inline Entity::Entity(EntityId id, gsl::not_null<ComponentStorage *> components)
     : id_(id), components_(components) {}
+
+template <Component T> bool Entity::has() { return components_->has<T>(id_); }
 
 template <Component T> T& Entity::get() { return components_->get<T>(id_); }
 
