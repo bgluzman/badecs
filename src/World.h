@@ -41,7 +41,7 @@ class SystemStorage {};
 class Entity {
 
 public:
-  explicit Entity(EntityId id, gsl::not_null<ComponentStorage *> world);
+  explicit Entity(EntityId id, gsl::not_null<ComponentStorage *> components);
   ~Entity() noexcept = default;
   Entity(const Entity&) = delete;
   Entity(Entity&&) noexcept = delete;
