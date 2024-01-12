@@ -17,8 +17,11 @@ class EntityStorage {};
 class ComponentStorage {
 public:
   template <Component T> static ComponentId getComponentId();
-  template <Component T> bool               has(EntityId entityId);
-  template <Component T> T&                 get(EntityId entityId);
+
+  template <Component T, typename... Ts>
+  void                        add(EntityId entityId, Ts&&...args);
+  template <Component T> bool has(EntityId entityId);
+  template <Component T> T&   get(EntityId entityId);
   template <Component T> void set(EntityId entityId, const T& value);
 
 private:
@@ -48,10 +51,11 @@ public:
   Entity& operator=(const Entity&) = delete;
   Entity& operator=(Entity&&) noexcept = delete;
 
-  template <Component T> bool has();
-  template <Component T> T&   get();
-  template <Component T> void set(const T& value);
-  template <Component T> void remove();
+  template <Component T, typename... Ts> void add(Ts&&...args);
+  template <Component T> bool                 has();
+  template <Component T> T&                   get();
+  template <Component T> void                 set(const T& value);
+  template <Component T> void                 remove();
 
 private:
   EntityId                          id_;
@@ -63,6 +67,23 @@ class World {};
 template <Component T> ComponentId ComponentStorage::getComponentId() {
   static ComponentId id = kComponentIdCounter++;
   return id;
+}
+
+template <Component T, typename... Ts>
+void ComponentStorage::add(EntityId entityId, Ts&&...args) {
+  // TODOD (bgluzman): DRY!
+  static constexpr std::size_t kComponentSize = sizeof(T);
+  ComponentId                  componentId = getComponentId<T>();
+  Column&                      col = columns_[componentId];
+
+  // TODO (bgluzman): all logic here should be offloaded to Column defn
+  if (col.pos + kComponentSize > Column::kBufSize) {
+    // TODO (bgluzman): proper error-handling
+    throw std::runtime_error{"column overflow"};
+  }
+  new (&col.buf[col.pos]) T(std::forward<Ts>(args)...);
+  col.index[entityId] = col.pos;
+  col.pos += kComponentSize;
 }
 
 template <Component T> bool ComponentStorage::has(EntityId entityId) {
@@ -108,6 +129,10 @@ void ComponentStorage::set(EntityId entityId, const T& value) {
 
 inline Entity::Entity(EntityId id, gsl::not_null<ComponentStorage *> components)
     : id_(id), components_(components) {}
+
+template <Component T, typename... Ts> void Entity::add(Ts&&...args) {
+  components_->add<T, Ts...>(id_, std::forward<Ts>(args)...);
+}
 
 template <Component T> bool Entity::has() { return components_->has<T>(id_); }
 
