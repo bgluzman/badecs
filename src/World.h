@@ -17,9 +17,8 @@ class EntityStorage {};
 class ComponentStorage {
 public:
   template <Component T> static ComponentId getComponentId();
-  template <Component T>
-  std::optional<gsl::not_null<T *>> get(EntityId entityId);
-  template <Component T> void       set(EntityId entityId, const T& value);
+  template <Component T> T&                 get(EntityId entityId);
+  template <Component T> void set(EntityId entityId, const T& value);
 
 private:
   static inline ComponentId kComponentIdCounter = 1;
@@ -48,9 +47,9 @@ public:
   Entity& operator=(const Entity&) = delete;
   Entity& operator=(Entity&&) noexcept = delete;
 
-  template <Component T> std::optional<gsl::not_null<T *>> get();
-  template <Component T> void                              set(const T& value);
-  template <Component T> void                              remove();
+  template <Component T> T&   get();
+  template <Component T> void set(const T& value);
+  template <Component T> void remove();
 
 private:
   EntityId                          id_;
@@ -64,8 +63,8 @@ template <Component T> ComponentId ComponentStorage::getComponentId() {
   return id;
 }
 
-template <Component T>
-std::optional<gsl::not_null<T *>> ComponentStorage::get(EntityId entityId) {
+template <Component T> T& ComponentStorage::get(EntityId entityId) {
+  // TODO (bgluzman): make more efficient by utilizing U.B.?
   ComponentId componentId = getComponentId<T>();
   if (auto columns_it = columns_.find(componentId);
       columns_it != columns_.end()) {
@@ -73,10 +72,10 @@ std::optional<gsl::not_null<T *>> ComponentStorage::get(EntityId entityId) {
     if (auto index_it = column.index.find(entityId);
         index_it != column.index.end()) {
       std::size_t pos = index_it->second;
-      return std::launder<T>(reinterpret_cast<T *>(&column.buf[pos]));
+      return *std::launder<T>(reinterpret_cast<T *>(&column.buf[pos]));
     }
   }
-  return std::nullopt;
+  throw std::runtime_error{"bad access"};
 }
 
 template <Component T>
@@ -98,9 +97,7 @@ void ComponentStorage::set(EntityId entityId, const T& value) {
 inline Entity::Entity(EntityId id, gsl::not_null<ComponentStorage *> components)
     : id_(id), components_(components) {}
 
-template <Component T> std::optional<gsl::not_null<T *>> Entity::get() {
-  return components_->get<T>(id_);
-}
+template <Component T> T& Entity::get() { return components_->get<T>(id_); }
 
 template <Component T> void Entity::set(const T& value) {
   components_->set(id_, value);
