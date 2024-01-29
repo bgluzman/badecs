@@ -46,6 +46,8 @@ class ComponentStorage {
 public:
   template <Component T>
   static ComponentId getComponentId();
+  template <Component T>
+  Column& getColumn();
 
   template <Component T, typename... Ts>
   void add(EntityId entityId, Ts&&...args);
@@ -55,11 +57,7 @@ public:
   void set(EntityId entityId, const T& value);
 
 private:
-  template <Component T>
-  Column& getColumn(EntityId entityId);
-
   static inline ComponentId kComponentIdCounter = 1;
-  // TODO (bgluzman): use a flat array w/ free list instead?
   std::unordered_map<ComponentId, std::unique_ptr<Column>> columns_ = {};
 };
 
@@ -97,6 +95,16 @@ ComponentId ComponentStorage::getComponentId() {
   return id;
 }
 
+template <Component T>
+inline Column& ComponentStorage::getColumn() {
+  ComponentId              componentId = getComponentId<T>();
+  std::unique_ptr<Column>& col = columns_[componentId];
+  if (!col) {
+    col = std::make_unique<Column>();
+  }
+  return *col;
+}
+
 template <Component T, typename... Ts>
 void ComponentStorage::add(EntityId entityId, Ts&&...args) {
   Column& col = getColumn<T>(entityId);
@@ -116,20 +124,8 @@ ComponentView<T> ComponentStorage::get(EntityId entityId) {
 
 template <Component T>
 void ComponentStorage::set(EntityId entityId, const T& value) {
-  // TODO (bgluzman): DRY! most of implementation shared w/ add
   Column& col = getColumn<T>(entityId);
   col.components[entityId] = std::make_unique<std::any>(value);
-}
-
-template <Component T>
-inline Column& ComponentStorage::getColumn(EntityId entityId) {
-  ComponentId              componentId = getComponentId<T>();
-  std::unique_ptr<Column>& col = columns_[componentId];
-  if (!col) {
-    // TODO (bgluzman): use a pool allocator?
-    col = std::make_unique<Column>();
-  }
-  return *col;
 }
 
 inline Entity::Entity(EntityId id, gsl::not_null<ComponentStorage *> components)
