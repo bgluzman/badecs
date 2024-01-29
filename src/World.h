@@ -5,6 +5,7 @@
 #include <gsl/gsl>
 #include <type_traits>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace bad {
 
@@ -38,15 +39,16 @@ private:
   std::unordered_map<ComponentId, std::unique_ptr<Column>> columns_ = {};
 };
 
-class Entity {
+class EntityHandle {
 
 public:
-  explicit Entity(EntityId id, gsl::not_null<ComponentStorage *> components);
-  ~Entity() noexcept = default;
-  Entity(const Entity&) = delete;
-  Entity(Entity&&) noexcept = delete;
-  Entity& operator=(const Entity&) = delete;
-  Entity& operator=(Entity&&) noexcept = delete;
+  explicit EntityHandle(EntityId                          id,
+                        gsl::not_null<ComponentStorage *> components);
+  ~EntityHandle() noexcept = default;
+  EntityHandle(EntityHandle&&) noexcept = default;
+  EntityHandle& operator=(EntityHandle&&) noexcept = default;
+  EntityHandle(const EntityHandle&) = delete;
+  EntityHandle& operator=(const EntityHandle&) = delete;
 
   template <Component T, typename... Ts>
   void add(Ts&&...args);
@@ -60,7 +62,20 @@ private:
   gsl::not_null<ComponentStorage *> components_;
 };
 
-class World {};
+class World {
+public:
+  EntityHandle                spawnEntity();
+  std::optional<EntityHandle> getEntity(EntityId id);
+
+  // TODO (bgluzman): for testing, remove laterb
+  ComponentStorage& getComponentStorage() { return *componentStorage_; }
+
+private:
+  static inline EntityId            kEntityIdCounter = 1;
+  std::unordered_set<EntityId>      entities_ = {};
+  std::unique_ptr<ComponentStorage> componentStorage_ =
+      std::make_unique<ComponentStorage>();
+};
 
 template <Component T>
 ComponentId ComponentStorage::getComponentId() {
@@ -101,21 +116,22 @@ void ComponentStorage::set(EntityId entityId, const T& value) {
   col.components[entityId] = std::make_unique<std::any>(value);
 }
 
-inline Entity::Entity(EntityId id, gsl::not_null<ComponentStorage *> components)
+inline EntityHandle::EntityHandle(EntityId                          id,
+                                  gsl::not_null<ComponentStorage *> components)
     : id_(id), components_(components) {}
 
 template <Component T, typename... Ts>
-void Entity::add(Ts&&...args) {
+void EntityHandle::add(Ts&&...args) {
   components_->add<T, Ts...>(id_, std::forward<Ts>(args)...);
 }
 
 template <Component T>
-std::optional<gsl::not_null<T *>> Entity::get() {
+std::optional<gsl::not_null<T *>> EntityHandle::get() {
   return components_->get<T>(id_);
 }
 
 template <Component T>
-void Entity::set(const T& value) {
+void EntityHandle::set(const T& value) {
   components_->set(id_, value);
 }
 

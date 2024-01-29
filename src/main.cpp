@@ -53,8 +53,8 @@ std::ostream& operator<<(std::ostream& os, const MoveIntention& moveIntention) {
 int main(int /*argc*/, char * /*argv*/[]) {
   std::cout << std::boolalpha;
 
-  bad::ComponentStorage storage;
-  bad::Entity           entity(1ULL, &storage);
+  bad::World        world;
+  bad::EntityHandle entity = world.spawnEntity();
 
   auto intEntity = entity.get<int>();
   auto doubleEntity = entity.get<double>();
@@ -103,46 +103,47 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
   std::cout << "== experiments with queries ==" << std::endl;
   {
-    bad::ComponentStorage queryStorage;
+    bad::World queryWorld;
 
-    bad::Entity player(1ULL, &queryStorage);
+    bad::EntityHandle player = queryWorld.spawnEntity();
     player.add<Name>("player");
     player.add<Player>();
     player.add<Position>(Vec2{0, 0});
     player.add<MoveIntention>(Vec2{1, 1});
 
-    bad::Entity rock(2ULL, &queryStorage);
+    bad::EntityHandle rock = queryWorld.spawnEntity();
     rock.add<Name>("rock");
     rock.add<Position>(Vec2{3, 3});
 
-    bad::Entity building(3ULL, &queryStorage);
+    bad::EntityHandle building = queryWorld.spawnEntity();
     building.add<Name>("building");
     building.add<Position>(Vec2{5, 5});
 
-    bad::Entity enemy(4ULL, &queryStorage);
+    bad::EntityHandle enemy = queryWorld.spawnEntity();
     enemy.add<Name>("enemy");
     enemy.add<Position>(Vec2{10, 10});
     enemy.add<Velocity>(Vec2{2, 2});
 
-    bad::Entity arrow(5ULL, &queryStorage);
+    bad::EntityHandle arrow = queryWorld.spawnEntity();
     arrow.add<Name>("arrow");
     arrow.add<Position>(Vec2{4, 4});
     arrow.add<Velocity>(Vec2{5, 5});
     arrow.add<Ephemeral>();
 
     std::vector<bad::EntityId> queryResult;
-    auto& positionColumn = queryStorage.getColumn<Position>();
-    auto& velocityColumn = queryStorage.getColumn<Velocity>();
+
+    auto& storage = queryWorld.getComponentStorage();
+    auto& positionColumn = storage.getColumn<Position>();
+    auto& velocityColumn = storage.getColumn<Velocity>();
     std::ranges::set_intersection(positionColumn.components | std::views::keys,
                                   velocityColumn.components | std::views::keys,
                                   std::back_inserter(queryResult));
 
     for (bad::EntityId entityId : queryResult) {
       std::cout << "entityId=" << entityId
-                << "\n  name=" << **queryStorage.get<Name>(entityId)
-                << "\n  position=" << **queryStorage.get<Position>(entityId)
-                << "\n  velocity=" << **queryStorage.get<Velocity>(entityId)
-                << '\n';
+                << "\n  name=" << **storage.get<Name>(entityId)
+                << "\n  position=" << **storage.get<Position>(entityId)
+                << "\n  velocity=" << **storage.get<Velocity>(entityId) << '\n';
     }
   }
 
