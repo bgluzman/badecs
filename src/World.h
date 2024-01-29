@@ -36,8 +36,7 @@ public:
   }
 
   T& operator*() {
-    // TODO (bgluzman): non-throwing version?
-    std::size_t pos = column_->index.at(entity_id_);
+    std::size_t pos = column_->index.find(entity_id_)->second;
     return *std::launder<T>(reinterpret_cast<T *>(&column_->buf[pos]));
   }
 
