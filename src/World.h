@@ -14,9 +14,6 @@ concept Component = std::is_move_assignable_v<T>;
 using EntityId = std::uint32_t;
 using ComponentId = std::uint32_t;
 
-class EntityStorage {};
-
-// TODO (bgluzman): totally redo this so it's a dynamic storage
 struct Column {
   std::unordered_map<EntityId, std::unique_ptr<std::any>> components = {};
 };
@@ -39,8 +36,6 @@ private:
   static inline ComponentId kComponentIdCounter = 1;
   std::unordered_map<ComponentId, std::unique_ptr<Column>> columns_ = {};
 };
-
-class SystemStorage {};
 
 class Entity {
 
