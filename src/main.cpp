@@ -17,35 +17,51 @@ struct Tag {};
 std::ostream& operator<<(std::ostream& os, const Tag&) { return os << "Tag{}"; }
 
 int main(int /*argc*/, char * /*argv*/[]) {
+  std::cout << std::boolalpha;
+
   bad::ComponentStorage storage;
   bad::Entity           entity(1ULL, &storage);
 
-  std::cout << std::boolalpha;
-  std::cout << "entity:hasInt=" << entity.has<int>() << std::endl;
-  std::cout << "entity:hasDouble=" << entity.has<double>() << std::endl;
-  std::cout << "entity:hasPosition=" << entity.has<Position>() << std::endl;
-  std::cout << "entity:hasTag=" << entity.has<Tag>() << std::endl;
+  auto intEntity = entity.get<int>();
+  auto doubleEntity = entity.get<double>();
+  auto positionEntity = entity.get<Position>();
+  auto tagEntity = entity.get<Tag>();
+
+  std::cout << "== before ==" << std::endl;
+  std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
+  std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
+  std::cout << "entity:hasPosition=" << bool(positionEntity) << std::endl;
+  std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
 
   entity.set<int>(42);
   entity.set<double>(NAN);
   entity.add<Tag>();
 
-  std::cout << "entity:int=" << entity.get<int>() << std::endl;
-  std::cout << "entity:double=" << entity.get<double>() << std::endl;
-  std::cout << "entity:Tag=" << entity.get<Tag>() << std::endl;
+  std::cout << "== after modifications (1) ==" << std::endl;
+  intEntity = entity.get<int>();
+  doubleEntity = entity.get<double>();
+  positionEntity = entity.get<Position>();
+  tagEntity = entity.get<Tag>();
+  std::cout << "entity:int=" << *intEntity << std::endl;
+  std::cout << "entity:double=" << *doubleEntity << std::endl;
+  std::cout << "entity:Tag=" << *tagEntity << std::endl;
 
   entity.set<double>(INFINITY);
   entity.add<Position>(100, 200);
 
-  std::cout << "entity:hasInt=" << entity.has<int>() << std::endl;
-  std::cout << "entity:hasDouble=" << entity.has<double>() << std::endl;
-  std::cout << "entity:hasPosition=" << entity.has<Position>() << std::endl;
-  std::cout << "entity:hasTag=" << entity.has<Tag>() << std::endl;
-
-  std::cout << "entity:int=" << entity.get<int>() << std::endl;
-  std::cout << "entity:double=" << entity.get<double>() << std::endl;
-  std::cout << "entity:Position=" << entity.get<Position>() << std::endl;
-  std::cout << "entity:Tag=" << entity.get<Tag>() << std::endl;
+  std::cout << "== after modifications (2) ==" << std::endl;
+  intEntity = entity.get<int>();
+  doubleEntity = entity.get<double>();
+  positionEntity = entity.get<Position>();
+  tagEntity = entity.get<Tag>();
+  std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
+  std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
+  std::cout << "entity:hasPosition=" << bool(positionEntity) << std::endl;
+  std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
+  std::cout << "entity:int=" << *intEntity << std::endl;
+  std::cout << "entity:double=" << *doubleEntity << std::endl;
+  std::cout << "entity:Tag=" << *positionEntity << std::endl;
+  std::cout << "entity:Tag=" << *tagEntity << std::endl;
 
   return 0;
 }

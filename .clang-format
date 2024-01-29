@@ -9,3 +9,4 @@ AlignConsecutiveMacros:
 SpacesBeforeTrailingComments: 2
 IncludeBlocks: Regroup
 SortIncludes: CaseSensitive
+AlwaysBreakTemplateDeclarations: Yes
