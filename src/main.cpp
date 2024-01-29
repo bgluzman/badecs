@@ -1,5 +1,6 @@
 #include "World.h"
 
+#include <cmath>
 #include <iostream>
 
 struct Position {
