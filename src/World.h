@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <gsl/gsl>
-#include <iostream>  // TODO (bgluzman): remove
 #include <type_traits>
 #include <unordered_map>
 
@@ -142,7 +141,7 @@ void ComponentStorage::set(EntityId entityId, const T& value) {
     col = std::make_unique<Column>();
   }
 
-  std::size_t pos = 0ULL;
+  std::size_t pos;
   if (auto it = col->index.find(entityId); it != col->index.end()) {
     pos = it->second;
   } else {
