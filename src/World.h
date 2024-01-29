@@ -9,7 +9,7 @@
 namespace bad {
 
 template <typename T>
-concept Component = std::is_trivially_copyable_v<T>;
+concept Component = std::is_move_assignable_v<T>;
 
 using EntityId = std::uint32_t;
 using ComponentId = std::uint32_t;

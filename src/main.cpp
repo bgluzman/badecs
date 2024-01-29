@@ -2,19 +2,53 @@
 
 #include <cmath>
 #include <iostream>
+#include <ranges>
+#include <string>
+#include <vector>
 
-struct Position {
+struct Vec2 {
   int x;
   int y;
 };
 
-std::ostream& operator<<(std::ostream& os, const Position& position) {
-  return os << "Position{x=" << position.x << ", y=" << position.y << '}';
+struct Position {
+  Vec2 value;
+};
+std::ostream& operator<<(std::ostream& os, const Position& pos) {
+  return os << "Position{x=" << pos.value.x << ", y=" << pos.value.y << "}";
 }
 
 struct Tag {};
-
 std::ostream& operator<<(std::ostream& os, const Tag&) { return os << "Tag{}"; }
+
+// for playing around with queries...
+struct Name {
+  std::string name;
+};
+std::ostream& operator<<(std::ostream& os, const Name& name) {
+  return os << "Name{" << name.name << "}";
+}
+struct Velocity {
+  Vec2 value;
+};
+std::ostream& operator<<(std::ostream& os, const Velocity& vel) {
+  return os << "Velocity{x=" << vel.value.x << ", y=" << vel.value.y << "}";
+}
+struct Player {};
+std::ostream& operator<<(std::ostream& os, const Player&) {
+  return os << "Player{}";
+}
+struct Ephemeral {};
+std::ostream& operator<<(std::ostream& os, const Ephemeral&) {
+  return os << "Ephemeral{}";
+}
+struct MoveIntention {
+  Vec2 value;
+};
+std::ostream& operator<<(std::ostream& os, const MoveIntention& moveIntention) {
+  return os << "MoveIntention{x=" << moveIntention.value.x
+            << ", y=" << moveIntention.value.y << "}";
+}
 
 int main(int /*argc*/, char * /*argv*/[]) {
   std::cout << std::boolalpha;
@@ -51,7 +85,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cout << "entity:Tag=" << **tagEntity << std::endl;
 
   entity.set<double>(INFINITY);
-  entity.add<Position>(100, 200);
+  entity.add<Position>(Vec2{100, 200});
 
   std::cout << "== after modifications (2) ==" << std::endl;
   intEntity = entity.get<int>();
@@ -66,6 +100,51 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cout << "entity:Tag=" << **positionEntity << std::endl;
   std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
   std::cout << "entity:Tag=" << **tagEntity << std::endl;
+
+  std::cout << "== experiments with queries ==" << std::endl;
+  {
+    bad::ComponentStorage queryStorage;
+
+    bad::Entity player(1ULL, &queryStorage);
+    player.add<Name>("player");
+    player.add<Player>();
+    player.add<Position>(Vec2{0, 0});
+    player.add<MoveIntention>(Vec2{1, 1});
+
+    bad::Entity rock(2ULL, &queryStorage);
+    rock.add<Name>("rock");
+    rock.add<Position>(Vec2{3, 3});
+
+    bad::Entity building(3ULL, &queryStorage);
+    building.add<Name>("building");
+    building.add<Position>(Vec2{5, 5});
+
+    bad::Entity enemy(4ULL, &queryStorage);
+    enemy.add<Name>("enemy");
+    enemy.add<Position>(Vec2{10, 10});
+    enemy.add<Velocity>(Vec2{2, 2});
+
+    bad::Entity arrow(5ULL, &queryStorage);
+    arrow.add<Name>("arrow");
+    arrow.add<Position>(Vec2{4, 4});
+    arrow.add<Velocity>(Vec2{5, 5});
+    arrow.add<Ephemeral>();
+
+    std::vector<bad::EntityId> queryResult;
+    auto& positionColumn = queryStorage.getColumn<Position>();
+    auto& velocityColumn = queryStorage.getColumn<Velocity>();
+    std::ranges::set_intersection(positionColumn.components | std::views::keys,
+                                  velocityColumn.components | std::views::keys,
+                                  std::back_inserter(queryResult));
+
+    for (bad::EntityId entityId : queryResult) {
+      std::cout << "entityId=" << entityId
+                << "\n  name=" << **queryStorage.get<Name>(entityId)
+                << "\n  position=" << **queryStorage.get<Position>(entityId)
+                << "\n  velocity=" << **queryStorage.get<Velocity>(entityId)
+                << '\n';
+    }
+  }
 
   return 0;
 }
