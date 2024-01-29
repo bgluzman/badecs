@@ -1,5 +1,6 @@
 #pragma once
 
+#include <any>
 #include <cstdint>
 #include <gsl/gsl>
 #include <type_traits>
@@ -19,25 +20,22 @@ class EntityStorage {};
 
 // TODO (bgluzman): totally redo this so it's a dynamic storage
 struct Column {
-  static inline constexpr std::size_t kBufSize = 1024ULL;
-  std::byte                           buf[kBufSize];
-  std::size_t                         pos = 0ULL;
-
-  std::unordered_map<EntityId, std::size_t> index = {};
+  std::unordered_map<EntityId, std::unique_ptr<std::any>> components = {};
 };
-template <typename T>
+
+template <Component T>
 class ComponentView {
 public:
   ComponentView(Column *column, EntityId entity_id)
       : column_(column), entity_id_(entity_id) {}
 
   operator bool() const noexcept {  // NOLINT(google-explicit-constructor)
-    return column_ && column_->index.find(entity_id_) != column_->index.end();
+    return column_ &&
+           column_->components.find(entity_id_) != column_->components.end();
   }
 
   T& operator*() {
-    std::size_t pos = column_->index.find(entity_id_)->second;
-    return *std::launder<T>(reinterpret_cast<T *>(&column_->buf[pos]));
+    return std::any_cast<T&>(*column_->components.find(entity_id_)->second);
   }
 
 private:
@@ -57,6 +55,9 @@ public:
   void set(EntityId entityId, const T& value);
 
 private:
+  template <Component T>
+  Column& getColumn(EntityId entityId);
+
   static inline ComponentId kComponentIdCounter = 1;
   // TODO (bgluzman): use a flat array w/ free list instead?
   std::unordered_map<ComponentId, std::unique_ptr<Column>> columns_ = {};
@@ -98,24 +99,9 @@ ComponentId ComponentStorage::getComponentId() {
 
 template <Component T, typename... Ts>
 void ComponentStorage::add(EntityId entityId, Ts&&...args) {
-  // TODO (bgluzman): DRY!
-  static constexpr std::size_t kComponentSize = sizeof(T);
-  ComponentId                  componentId = getComponentId<T>();
-
-  std::unique_ptr<Column>& col = columns_[componentId];
-  if (!col) {
-    // TODO (bgluzman): use a pool allocator?
-    col = std::make_unique<Column>();
-  }
-
-  // TODO (bgluzman): all logic here should be offloaded to Column defn
-  if (col->pos + kComponentSize > Column::kBufSize) {
-    // TODO (bgluzman): proper error-handling
-    throw std::runtime_error{"column overflow"};
-  }
-  new (&col->buf[col->pos]) T(std::forward<Ts>(args)...);
-  col->index[entityId] = col->pos;
-  col->pos += kComponentSize;
+  Column& col = getColumn<T>(entityId);
+  col.components[entityId] = std::make_unique<std::any>(
+      std::in_place_type<T>, std::forward<Ts>(args)...);
 }
 
 template <Component T>
@@ -131,29 +117,19 @@ ComponentView<T> ComponentStorage::get(EntityId entityId) {
 template <Component T>
 void ComponentStorage::set(EntityId entityId, const T& value) {
   // TODO (bgluzman): DRY! most of implementation shared w/ add
-  static constexpr std::size_t kComponentSize = sizeof(T);
-  ComponentId                  componentId = getComponentId<T>();
+  Column& col = getColumn<T>(entityId);
+  col.components[entityId] = std::make_unique<std::any>(value);
+}
 
+template <Component T>
+inline Column& ComponentStorage::getColumn(EntityId entityId) {
+  ComponentId              componentId = getComponentId<T>();
   std::unique_ptr<Column>& col = columns_[componentId];
   if (!col) {
     // TODO (bgluzman): use a pool allocator?
     col = std::make_unique<Column>();
   }
-
-  std::size_t pos;
-  if (auto it = col->index.find(entityId); it != col->index.end()) {
-    pos = it->second;
-  } else {
-    // TODO (bgluzman): all logic here should be offloaded to Column defn
-    if (col->pos + kComponentSize > Column::kBufSize) {
-      // TODO (bgluzman): proper error-handling
-      throw std::runtime_error{"column overflow"};
-    }
-    col->index[entityId] = col->pos;
-    pos = col->pos;
-  }
-  std::memcpy(&col->buf[pos], &value, kComponentSize);
-  col->pos += kComponentSize;
+  return *col;
 }
 
 inline Entity::Entity(EntityId id, gsl::not_null<ComponentStorage *> components)

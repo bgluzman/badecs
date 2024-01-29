@@ -40,7 +40,12 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cout << "== after modifications (1) ==" << std::endl;
   intEntity = entity.get<int>();
   doubleEntity = entity.get<double>();
+  positionEntity = entity.get<Position>();
   tagEntity = entity.get<Tag>();
+  std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
+  std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
+  std::cout << "entity:hasPosition=" << bool(positionEntity) << std::endl;
+  std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
   std::cout << "entity:int=" << *intEntity << std::endl;
   std::cout << "entity:double=" << *doubleEntity << std::endl;
   std::cout << "entity:Tag=" << *tagEntity << std::endl;
