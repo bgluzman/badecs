@@ -14,8 +14,6 @@ concept Component = std::is_trivially_copyable_v<T>;
 using EntityId = std::uint32_t;
 using ComponentId = std::uint32_t;
 
-static constexpr EntityId kInvalidEntityId = 0ULL;
-
 class EntityStorage {};
 
 // TODO (bgluzman): totally redo this so it's a dynamic storage
@@ -23,25 +21,6 @@ struct Column {
   std::unordered_map<EntityId, std::unique_ptr<std::any>> components = {};
 };
 
-template <Component T>
-class ComponentView {
-public:
-  ComponentView(Column *column, EntityId entity_id)
-      : column_(column), entity_id_(entity_id) {}
-
-  operator bool() const noexcept {  // NOLINT(google-explicit-constructor)
-    return column_ &&
-           column_->components.find(entity_id_) != column_->components.end();
-  }
-
-  T& operator*() {
-    return std::any_cast<T&>(*column_->components.find(entity_id_)->second);
-  }
-
-private:
-  Column  *column_;
-  EntityId entity_id_;
-};
 class ComponentStorage {
 public:
   template <Component T>
@@ -52,7 +31,7 @@ public:
   template <Component T, typename... Ts>
   void add(EntityId entityId, Ts&&...args);
   template <Component T>
-  ComponentView<T> get(EntityId entityId);
+  std::optional<gsl::not_null<T *>> get(EntityId entityId);
   template <Component T>
   void set(EntityId entityId, const T& value);
 
@@ -76,11 +55,9 @@ public:
   template <Component T, typename... Ts>
   void add(Ts&&...args);
   template <Component T>
-  ComponentView<T> get();
+  std::optional<gsl::not_null<T *>> get();
   template <Component T>
   void set(const T& value);
-  template <Component T>
-  void remove();
 
 private:
   EntityId                          id_;
@@ -107,24 +84,24 @@ inline Column& ComponentStorage::getColumn() {
 
 template <Component T, typename... Ts>
 void ComponentStorage::add(EntityId entityId, Ts&&...args) {
-  Column& col = getColumn<T>(entityId);
+  Column& col = getColumn<T>();
   col.components[entityId] = std::make_unique<std::any>(
       std::in_place_type<T>, std::forward<Ts>(args)...);
 }
 
 template <Component T>
-ComponentView<T> ComponentStorage::get(EntityId entityId) {
+std::optional<gsl::not_null<T *>> ComponentStorage::get(EntityId entityId) {
   ComponentId componentId = getComponentId<T>();
   if (auto it = columns_.find(componentId); it != columns_.end()) {
-    return ComponentView<T>(it->second.get(), entityId);
+    return std::any_cast<T>(it->second->components[entityId].get());
   } else {
-    return ComponentView<T>(nullptr, kInvalidEntityId);
+    return std::nullopt;
   }
 }
 
 template <Component T>
 void ComponentStorage::set(EntityId entityId, const T& value) {
-  Column& col = getColumn<T>(entityId);
+  Column& col = getColumn<T>();
   col.components[entityId] = std::make_unique<std::any>(value);
 }
 
@@ -137,7 +114,7 @@ void Entity::add(Ts&&...args) {
 }
 
 template <Component T>
-ComponentView<T> Entity::get() {
+std::optional<gsl::not_null<T *>> Entity::get() {
   return components_->get<T>(id_);
 }
 
@@ -145,8 +122,5 @@ template <Component T>
 void Entity::set(const T& value) {
   components_->set(id_, value);
 }
-
-template <Component T>
-void Entity::remove() {}
 
 }  // namespace bad

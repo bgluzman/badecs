@@ -43,12 +43,12 @@ int main(int /*argc*/, char * /*argv*/[]) {
   positionEntity = entity.get<Position>();
   tagEntity = entity.get<Tag>();
   std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
+  std::cout << "entity:int=" << **intEntity << std::endl;
   std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
+  std::cout << "entity:double=" << **doubleEntity << std::endl;
   std::cout << "entity:hasPosition=" << bool(positionEntity) << std::endl;
   std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
-  std::cout << "entity:int=" << *intEntity << std::endl;
-  std::cout << "entity:double=" << *doubleEntity << std::endl;
-  std::cout << "entity:Tag=" << *tagEntity << std::endl;
+  std::cout << "entity:Tag=" << **tagEntity << std::endl;
 
   entity.set<double>(INFINITY);
   entity.add<Position>(100, 200);
@@ -59,13 +59,13 @@ int main(int /*argc*/, char * /*argv*/[]) {
   positionEntity = entity.get<Position>();
   tagEntity = entity.get<Tag>();
   std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
+  std::cout << "entity:int=" << **intEntity << std::endl;
   std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
+  std::cout << "entity:double=" << **doubleEntity << std::endl;
   std::cout << "entity:hasPosition=" << bool(positionEntity) << std::endl;
+  std::cout << "entity:Tag=" << **positionEntity << std::endl;
   std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
-  std::cout << "entity:int=" << *intEntity << std::endl;
-  std::cout << "entity:double=" << *doubleEntity << std::endl;
-  std::cout << "entity:Tag=" << *positionEntity << std::endl;
-  std::cout << "entity:Tag=" << *tagEntity << std::endl;
+  std::cout << "entity:Tag=" << **tagEntity << std::endl;
 
   return 0;
 }
