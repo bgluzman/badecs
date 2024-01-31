@@ -50,6 +50,8 @@ public:
   EntityHandle(const EntityHandle&) = delete;
   EntityHandle& operator=(const EntityHandle&) = delete;
 
+  [[nodiscard]] EntityId getId() const noexcept { return id_; }
+
   template <Component T, typename... Ts>
   void add(Ts&&...args);
   template <Component T>
@@ -67,7 +69,21 @@ public:
   EntityHandle                spawnEntity();
   std::optional<EntityHandle> getEntity(EntityId id);
 
-  // TODO (bgluzman): for testing, remove laterb
+  template <typename... Args>
+  void query(std::invocable<EntityHandle, Args...> auto&& callback,
+             Args&&...args) {
+    for (EntityId id : entities_) {
+      callback(*getEntity(id), std::forward<Args>(args)...);
+    }
+  }
+  template <typename... Args>
+  void query(std::invocable<Args...> auto&& callback, Args&&...args) {
+    for (EntityId id : entities_) {
+      callback(std::forward<Args>(args)...);
+    }
+  }
+
+  // TODO (bgluzman): for testing, remove later
   ComponentStorage& getComponentStorage() { return *componentStorage_; }
 
 private:

@@ -145,6 +145,14 @@ int main(int /*argc*/, char * /*argv*/[]) {
                 << "\n  position=" << **storage.get<Position>(entityId)
                 << "\n  velocity=" << **storage.get<Velocity>(entityId) << '\n';
     }
+
+    queryWorld.query(
+        [](bad::EntityHandle entity, float x) {
+          std::cout << entity.getId() << " " << x << std::endl;
+        },
+        42.0);
+    queryWorld.query([](float x) { std::cout << "->" << x << std::endl; },
+                     4242.0);
   }
 
   return 0;

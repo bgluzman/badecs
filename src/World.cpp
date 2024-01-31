@@ -3,7 +3,9 @@
 namespace bad {
 
 EntityHandle World::spawnEntity() {
-  return EntityHandle(kEntityIdCounter++, componentStorage_.get());
+  EntityId newEntityId = kEntityIdCounter++;
+  entities_.insert(newEntityId);
+  return EntityHandle(newEntityId, componentStorage_.get());
 }
 
 std::optional<EntityHandle> World::getEntity(EntityId id) {
