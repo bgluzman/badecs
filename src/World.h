@@ -77,10 +77,7 @@ public:
   void query(std::invocable<Args...> auto&& callback);
   template <Component... Args>
   void query(std::invocable<EntityHandle, Args...> auto&& callback);
-
-  // TODO (bgluzman): for testing, remove later
-  ComponentStorage& getComponentStorage() { return *componentStorage_; }
-
+  
 private:
   template <Component Arg, Component... Args>
   std::set<EntityId> getQueryComponents();
