@@ -2,9 +2,7 @@
 
 #include <cmath>
 #include <iostream>
-#include <ranges>
 #include <string>
-#include <vector>
 
 struct Vec2 {
   int x;
