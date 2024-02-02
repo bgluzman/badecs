@@ -130,9 +130,10 @@ int main(int /*argc*/, char * /*argv*/[]) {
     arrow.add<Velocity>(Vec2{5, 5});
     arrow.add<Ephemeral>();
 
-    queryWorld.query<Position, Velocity>([](Position pos, Velocity vel) {
-      std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
-    });
+    queryWorld.query<Position, Velocity>(
+        [](const Position& pos, const Velocity& vel) {
+          std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
+        });
     queryWorld.query<Position, Velocity>(
         [](bad::EntityHandle entity, Position pos, Velocity vel) {
           std::cout << "entity=" << entity.getId() << " position=" << pos
