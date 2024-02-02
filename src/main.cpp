@@ -130,29 +130,14 @@ int main(int /*argc*/, char * /*argv*/[]) {
     arrow.add<Velocity>(Vec2{5, 5});
     arrow.add<Ephemeral>();
 
-    std::vector<bad::EntityId> queryResult;
-
-    auto& storage = queryWorld.getComponentStorage();
-    auto& positionColumn = storage.getColumn<Position>();
-    auto& velocityColumn = storage.getColumn<Velocity>();
-    std::ranges::set_intersection(positionColumn.components | std::views::keys,
-                                  velocityColumn.components | std::views::keys,
-                                  std::back_inserter(queryResult));
-
-    for (bad::EntityId entityId : queryResult) {
-      std::cout << "entityId=" << entityId
-                << "\n  name=" << **storage.get<Name>(entityId)
-                << "\n  position=" << **storage.get<Position>(entityId)
-                << "\n  velocity=" << **storage.get<Velocity>(entityId) << '\n';
-    }
-
-    queryWorld.query(
-        [](bad::EntityHandle entity, float x) {
-          std::cout << entity.getId() << " " << x << std::endl;
-        },
-        42.0);
-    queryWorld.query([](float x) { std::cout << "->" << x << std::endl; },
-                     4242.0);
+    queryWorld.query<Position, Velocity>([](Position pos, Velocity vel) {
+      std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
+    });
+    queryWorld.query<Position, Velocity>(
+        [](bad::EntityHandle entity, Position pos, Velocity vel) {
+          std::cout << "entity=" << entity.getId() << " position=" << pos
+                    << ", velocity=" << vel << std::endl;
+        });
   }
 
   return 0;
