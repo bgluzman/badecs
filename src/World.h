@@ -2,6 +2,7 @@
 
 #include <any>
 #include <cstdint>
+#include <functional>
 #include <gsl/gsl>
 #include <iostream>
 #include <ranges>
@@ -28,8 +29,10 @@ class ComponentStorage {
 public:
   template <Component T>
   static ComponentId getComponentId();
+  // TODO (bgluzman): we should try to unify these, I think?
   template <Component T>
   Column& getColumn();
+  Column& getColumn(ComponentId componentId);
 
   template <Component T, typename... Ts>
   void add(EntityId entityId, Ts&&...args);
@@ -74,18 +77,60 @@ public:
   std::optional<EntityHandle> getEntity(EntityId id);
 
   template <Component... Args>
+  void addSystem(std::invocable<Args...> auto&& system);
+  template <Component... Args>
+  void addSystem(std::invocable<EntityHandle, Args...> auto&& system);
+
+  template <Component... Args>
   void query(std::invocable<Args...> auto&& callback);
   template <Component... Args>
   void query(std::invocable<EntityHandle, Args...> auto&& callback);
-  
+
+  template <Component... Args>
+  void tick();
+
 private:
   template <Component Arg, Component... Args>
   std::set<EntityId> getQueryComponents();
+  // TODO (bgluzman): unify this with generic version above
+  std::set<EntityId> getQueryComponents(const std::vector<ComponentId>& ids);
 
   static inline EntityId            kEntityIdCounter = 1;
   std::unordered_set<EntityId>      entities_ = {};
   std::unique_ptr<ComponentStorage> componentStorage_ =
       std::make_unique<ComponentStorage>();
+
+  class ErasedSystemSpec {
+  private:
+    template <Component... Args>
+    struct SystemSpec {
+      explicit SystemSpec(std::invocable<Args...> auto&& system)
+          : system_(std::forward<decltype(system)>(system)) {}
+      void operator()(World& world, EntityId entityId) {
+        // TODO (bgluzman): fixup dereferencing?
+        system_(**world.componentStorage_->get<Args>(entityId)...);
+      }
+      std::function<void(Args...)> system_;
+    };
+
+  public:
+    template <Component... Args>
+    struct tag {};
+
+    template <Component... Args>
+    explicit ErasedSystemSpec(std::invocable<Args...> auto&& system,
+                              tag<Args...>)
+        : systemSpec_(
+              SystemSpec<Args...>(std::forward<decltype(system)>(system))) {}
+
+    void operator()(World& world, EntityId entityId) {
+      systemSpec_(world, entityId);
+    }
+
+  private:
+    std::function<void(World&, EntityId)> systemSpec_;
+  };
+  std::vector<ErasedSystemSpec> systems_ = {};
 };
 
 template <Component T>
@@ -96,7 +141,10 @@ ComponentId ComponentStorage::getComponentId() {
 
 template <Component T>
 inline Column& ComponentStorage::getColumn() {
-  ComponentId              componentId = getComponentId<T>();
+  return getColumn(getComponentId<T>());
+}
+
+inline Column& ComponentStorage::getColumn(ComponentId componentId) {
   std::unique_ptr<Column>& col = columns_[componentId];
   if (!col) {
     col = std::make_unique<Column>();
@@ -146,6 +194,17 @@ void EntityHandle::set(const T& value) {
   components_->set(id_, value);
 }
 
+template <Component... Args>
+void World::addSystem(std::invocable<Args...> auto&& system) {
+  systems_.emplace_back(ErasedSystemSpec(std::forward<decltype(system)>(system),
+                                         ErasedSystemSpec::tag<Args...>()));
+}
+
+template <Component... Args>
+void World::addSystem(std::invocable<EntityHandle, Args...> auto&& system) {
+  // TODO (bgluzman)
+}
+
 // TODO (bgluzman): actually implement these properly...
 template <Component... Args>
 void World::query(std::invocable<Args...> auto&& callback) {
@@ -181,6 +240,35 @@ std::set<EntityId> World::getQueryComponents() {
             std::ranges::to<std::set<EntityId>>(),
         getQueryComponents<Args...>(), std::inserter(result, result.begin()));
     return result;
+  }
+}
+
+// TODO (bgluzman): unify this with generic version above
+inline std::set<EntityId>
+World::getQueryComponents(const std::vector<ComponentId>& ids) {
+  if (std::empty(ids))
+    return {};
+
+  std::set<EntityId> result = componentStorage_->getColumn(ids[0]).components |
+                              std::views::keys |
+                              std::ranges::to<std::set<EntityId>>();
+  for (std::size_t i = 1; i < ids.size(); ++i) {
+    std::ranges::set_intersection(
+        componentStorage_->getColumn(ids[i]).components | std::views::keys |
+            std::ranges::to<std::set<EntityId>>(),
+        result, std::inserter(result, result.begin()));
+  }
+  return result;
+}
+
+// TODO (bgluzman): obviously don't pass Args as template params...should be
+//  computable from ErasedSystemSpec
+template <Component... Args>
+inline void World::tick() {
+  for (ErasedSystemSpec& system : systems_) {
+    for (EntityId id : getQueryComponents<Args...>()) {
+      system(*this, id);
+    }
   }
 }
 
