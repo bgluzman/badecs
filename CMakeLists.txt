@@ -17,5 +17,13 @@ add_executable(badecs
         src/main.cpp
         src/World.h
         src/World.cpp
+        src/Common.h
+        src/Common.cpp
+        src/Column.cpp
+        src/Column.h
+        src/ComponentStorage.cpp
+        src/ComponentStorage.h
+        src/EntityHandle.cpp
+        src/EntityHandle.h
 )
 target_link_libraries(badecs PRIVATE Microsoft.GSL::GSL)
