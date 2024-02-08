@@ -48,23 +48,17 @@ inline std::optional<EntityHandle> World::getEntity(EntityId id) {
              : std::nullopt;
 }
 
-// TODO (bgluzman): actually implement these properly...
 template <Component... Args>
 void World::query(std::invocable<Args...> auto&& callback) {
   for (EntityId id : getQueryComponents<Args...>()) {
-    // TODO (bgluzman): change return types to make this better or provide
-    //  a getUnchecked member function?
-    callback(**components_->get<Args>(id)...);
+    callback(components_->getUnchecked<Args>(id)...);
   }
 }
 
 template <Component... Args>
 void World::query(std::invocable<EntityHandle, Args...> auto&& callback) {
-  // TODO (bgluzman): DRY w.r.t above?
   for (EntityId id : getQueryComponents<Args...>()) {
-    // TODO (bgluzman): change return types to make this better or provide
-    //  a getUnchecked member function?
-    callback(*getEntity(id), **components_->get<Args>(id)...);
+    callback(*getEntity(id), components_->getUnchecked<Args>(id)...);
   }
 }
 
