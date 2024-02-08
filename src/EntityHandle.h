@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Common.h"
-#include "ComponentStorage.h"
+#include "ComponentManager.h"
 
 #include <gsl/gsl>
 #include <optional>
@@ -11,7 +11,7 @@ namespace bad {
 class EntityHandle {
 public:
   explicit EntityHandle(EntityId                          id,
-                        gsl::not_null<ComponentStorage *> components);
+                        gsl::not_null<ComponentManager *> components);
   ~EntityHandle() noexcept = default;
   EntityHandle(EntityHandle&&) noexcept = default;
   EntityHandle& operator=(EntityHandle&&) noexcept = default;
@@ -29,11 +29,11 @@ public:
 
 private:
   EntityId                          id_;
-  gsl::not_null<ComponentStorage *> components_;
+  gsl::not_null<ComponentManager *> components_;
 };
 
 inline EntityHandle::EntityHandle(EntityId                          id,
-                                  gsl::not_null<ComponentStorage *> components)
+                                  gsl::not_null<ComponentManager *> components)
     : id_(id), components_(components) {}
 
 template <Component T, typename... Ts>

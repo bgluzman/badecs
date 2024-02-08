@@ -1,3 +1,3 @@
-#include "ComponentStorage.h"
+#include "ComponentManager.h"
 
 namespace bad {}  // namespace bad

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Common.h"
-#include "ComponentStorage.h"
+#include "ComponentManager.h"
 #include "EntityHandle.h"
 
 #include <any>
@@ -34,8 +34,8 @@ private:
   // TODO (bgluzman): should not be static!
   static inline EntityId            kEntityIdCounter = 1;
   std::unordered_set<EntityId>      entities_ = {};
-  std::unique_ptr<ComponentStorage> componentStorage_ =
-      std::make_unique<ComponentStorage>();
+  std::unique_ptr<ComponentManager> componentStorage_ =
+      std::make_unique<ComponentManager>();
 };
 
 // TODO (bgluzman): actually implement these properly...

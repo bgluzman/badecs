@@ -21,8 +21,8 @@ add_executable(badecs
         src/Common.cpp
         src/Column.cpp
         src/Column.h
-        src/ComponentStorage.cpp
-        src/ComponentStorage.h
+        src/ComponentManager.cpp
+        src/ComponentManager.h
         src/EntityHandle.cpp
         src/EntityHandle.h
 )

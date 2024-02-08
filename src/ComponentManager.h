@@ -7,7 +7,7 @@
 
 namespace bad {
 
-class ComponentStorage {
+class ComponentManager {
 public:
   template <Component T>
   static ComponentId getComponentId();
@@ -28,13 +28,13 @@ private:
 };
 
 template <Component T>
-ComponentId ComponentStorage::getComponentId() {
+ComponentId ComponentManager::getComponentId() {
   static ComponentId id = kComponentIdCounter++;
   return id;
 }
 
 template <Component T>
-inline Column& ComponentStorage::getColumn() {
+inline Column& ComponentManager::getColumn() {
   ComponentId              componentId = getComponentId<T>();
   std::unique_ptr<Column>& col = columns_[componentId];
   if (!col) {
@@ -44,14 +44,14 @@ inline Column& ComponentStorage::getColumn() {
 }
 
 template <Component T, typename... Ts>
-void ComponentStorage::add(EntityId entityId, Ts&&...args) {
+void ComponentManager::add(EntityId entityId, Ts&&...args) {
   Column& col = getColumn<T>();
   col.components[entityId] = std::make_unique<std::any>(
       std::in_place_type<T>, std::forward<Ts>(args)...);
 }
 
 template <Component T>
-std::optional<gsl::not_null<T *>> ComponentStorage::get(EntityId entityId) {
+std::optional<gsl::not_null<T *>> ComponentManager::get(EntityId entityId) {
   ComponentId componentId = getComponentId<T>();
   if (auto it = columns_.find(componentId); it != columns_.end()) {
     return std::any_cast<T>(it->second->components[entityId].get());
@@ -61,7 +61,7 @@ std::optional<gsl::not_null<T *>> ComponentStorage::get(EntityId entityId) {
 }
 
 template <Component T>
-void ComponentStorage::set(EntityId entityId, const T& value) {
+void ComponentManager::set(EntityId entityId, const T& value) {
   Column& col = getColumn<T>();
   col.components[entityId] = std::make_unique<std::any>(value);
 }
