@@ -16,7 +16,7 @@ public:
   std::vector<EntityId> getEntityIds();
 
   template <Component T, typename... Ts>
-  void add(EntityId entityId, Ts&&...args);
+  void emplace(EntityId entityId, Ts&&...args);
   template <Component T>
   gsl::not_null<T *> get(EntityId entityId);
   template <Component T>
@@ -27,7 +27,7 @@ private:
 };
 
 template <Component T, typename... Ts>
-void Column::add(EntityId entityId, Ts&&...args) {
+void Column::emplace(EntityId entityId, Ts&&...args) {
   components_[entityId] = std::make_unique<std::any>(std::in_place_type<T>,
                                                      std::forward<Ts>(args)...);
 }

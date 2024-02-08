@@ -15,7 +15,7 @@ public:
   Column& getColumn();
 
   template <Component T, typename... Ts>
-  void add(EntityId entityId, Ts&&...args);
+  void emplace(EntityId entityId, Ts&&...args);
   template <Component T>
   std::optional<gsl::not_null<T *>> get(EntityId entityId);
   template <Component T>
@@ -46,9 +46,9 @@ inline Column& ComponentRegistry::getColumn() {
 }
 
 template <Component T, typename... Ts>
-void ComponentRegistry::add(EntityId entityId, Ts&&...args) {
+void ComponentRegistry::emplace(EntityId entityId, Ts&&...args) {
   Column& col = getColumn<T>();
-  col.add<T>(entityId, std::forward<Ts>(args)...);
+  col.emplace<T>(entityId, std::forward<Ts>(args)...);
 }
 
 template <Component T>

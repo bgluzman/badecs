@@ -21,7 +21,7 @@ public:
   [[nodiscard]] EntityId getId() const noexcept { return id_; }
 
   template <Component T, typename... Ts>
-  void add(Ts&&...args);
+  void emplace(Ts&&...args);
   template <Component T>
   std::optional<gsl::not_null<T *>> get();
   template <Component T>
@@ -37,8 +37,8 @@ inline EntityHandle::EntityHandle(EntityId                           id,
     : id_(id), components_(components) {}
 
 template <Component T, typename... Ts>
-void EntityHandle::add(Ts&&...args) {
-  components_->add<T, Ts...>(id_, std::forward<Ts>(args)...);
+void EntityHandle::emplace(Ts&&...args) {
+  components_->emplace<T, Ts...>(id_, std::forward<Ts>(args)...);
 }
 
 template <Component T>
