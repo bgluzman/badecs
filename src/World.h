@@ -32,7 +32,6 @@ private:
   template <Component Arg, Component... Args>
   std::set<EntityId> getQueryComponents();
 
-  // TODO (bgluzman): should not be static!
   std::unique_ptr<EntityManager> entities_ = std::make_unique<EntityManager>();
   std::unique_ptr<ComponentManager> components_ =
       std::make_unique<ComponentManager>();
