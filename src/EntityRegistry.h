@@ -7,7 +7,7 @@
 
 namespace bad {
 
-class EntityManager {
+class EntityRegistry {
 public:
   EntityId add();
   bool     has(EntityId id) noexcept;
@@ -17,12 +17,12 @@ private:
   std::unordered_set<EntityId> entities_ = {};
 };
 
-inline EntityId EntityManager::add() {
+inline EntityId EntityRegistry::add() {
   entities_.insert(entity_counter_);
   return entity_counter_++;
 }
 
-inline bool EntityManager::has(EntityId id) noexcept {
+inline bool EntityRegistry::has(EntityId id) noexcept {
   return entities_.contains(id);
 }
 

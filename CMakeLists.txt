@@ -21,11 +21,11 @@ add_executable(badecs
         src/Common.cpp
         src/Column.cpp
         src/Column.h
-        src/ComponentManager.cpp
-        src/ComponentManager.h
+        src/ComponentRegistry.cpp
+        src/ComponentRegistry.h
         src/EntityHandle.cpp
         src/EntityHandle.h
-        src/EntityManager.cpp
-        src/EntityManager.h
+        src/EntityRegistry.cpp
+        src/EntityRegistry.h
 )
 target_link_libraries(badecs PRIVATE Microsoft.GSL::GSL)

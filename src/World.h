@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Common.h"
-#include "ComponentManager.h"
+#include "ComponentRegistry.h"
 #include "EntityHandle.h"
-#include "EntityManager.h"
+#include "EntityRegistry.h"
 
 #include <any>
 #include <cstdint>
@@ -32,9 +32,10 @@ private:
   template <Component Arg, Component... Args>
   std::set<EntityId> getQueryComponents();
 
-  std::unique_ptr<EntityManager> entities_ = std::make_unique<EntityManager>();
-  std::unique_ptr<ComponentManager> components_ =
-      std::make_unique<ComponentManager>();
+  std::unique_ptr<EntityRegistry> entities_ =
+      std::make_unique<EntityRegistry>();
+  std::unique_ptr<ComponentRegistry> components_ =
+      std::make_unique<ComponentRegistry>();
 };
 
 inline EntityHandle World::spawnEntity() {

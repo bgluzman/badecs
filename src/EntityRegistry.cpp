@@ -1,3 +1,3 @@
-#include "EntityManager.h"
+#include "EntityRegistry.h"
 
 namespace bad {}  // namespace bad
