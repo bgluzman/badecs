@@ -25,5 +25,7 @@ add_executable(badecs
         src/ComponentManager.h
         src/EntityHandle.cpp
         src/EntityHandle.h
+        src/EntityManager.cpp
+        src/EntityManager.h
 )
 target_link_libraries(badecs PRIVATE Microsoft.GSL::GSL)
