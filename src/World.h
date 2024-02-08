@@ -30,7 +30,7 @@ public:
 
 private:
   template <Component Arg, Component... Args>
-  std::set<EntityId> getQueryComponents();
+  std::vector<EntityId> getQueryComponents();
 
   std::unique_ptr<EntityRegistry> entities_ =
       std::make_unique<EntityRegistry>();
@@ -63,19 +63,16 @@ void World::query(std::invocable<EntityHandle, Args...> auto&& callback) {
 }
 
 template <Component Arg, Component... Args>
-std::set<EntityId> World::getQueryComponents() {
+std::vector<EntityId> World::getQueryComponents() {
   if constexpr (sizeof...(Args) == 0) {
-    return components_->getColumn<Arg>().components | std::views::keys |
-           std::ranges::to<std::set<EntityId>>();
+    return components_->getColumn<Arg>().getEntityIds();
   } else {
-    // TODO (bgluzman): could we reuse the set from the recursive call?
-    std::set<EntityId> result;
-    std::ranges::set_intersection(
-        // TODO (bgluzman): can probably get around making this intermediate
-        //  set; just have to maintain sorted order...
-        components_->getColumn<Arg>().components | std::views::keys |
-            std::ranges::to<std::set<EntityId>>(),
-        getQueryComponents<Args...>(), std::inserter(result, result.begin()));
+    auto argQueryComponents = components_->getColumn<Arg>().getEntityIds();
+    auto argsQueryComponents = getQueryComponents<Args...>();
+
+    std::vector<EntityId> result;
+    std::ranges::set_intersection(argQueryComponents, argsQueryComponents,
+                                  std::back_inserter(result));
     return result;
   }
 }
