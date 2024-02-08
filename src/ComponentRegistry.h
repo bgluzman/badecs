@@ -48,15 +48,14 @@ inline Column& ComponentRegistry::getColumn() {
 template <Component T, typename... Ts>
 void ComponentRegistry::add(EntityId entityId, Ts&&...args) {
   Column& col = getColumn<T>();
-  col.components[entityId] = std::make_unique<std::any>(
-      std::in_place_type<T>, std::forward<Ts>(args)...);
+  col.add<T>(entityId, std::forward<Ts>(args)...);
 }
 
 template <Component T>
 std::optional<gsl::not_null<T *>> ComponentRegistry::get(EntityId entityId) {
   ComponentId componentId = getComponentId<T>();
   if (auto it = columns_.find(componentId); it != columns_.end()) {
-    return std::any_cast<T>(it->second->components[entityId].get());
+    return it->second->get<T>(entityId);
   } else {
     return std::nullopt;
   }
@@ -64,15 +63,13 @@ std::optional<gsl::not_null<T *>> ComponentRegistry::get(EntityId entityId) {
 
 template <Component T>
 T& ComponentRegistry::getUnchecked(bad::EntityId entityId) {
-  ComponentId componentId = getComponentId<T>();
-  return *std::any_cast<T>(
-      columns_.at(componentId)->components.at(entityId).get());
+  return **get<T>(entityId);
 }
 
 template <Component T>
 void ComponentRegistry::set(EntityId entityId, const T& value) {
   Column& col = getColumn<T>();
-  col.components[entityId] = std::make_unique<std::any>(value);
+  col.set(entityId, value);
 }
 
 }  // namespace bad
