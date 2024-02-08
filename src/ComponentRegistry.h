@@ -11,6 +11,7 @@ class ComponentRegistry {
 public:
   template <Component T>
   static ComponentId getComponentId();
+  // TODO (bgluzman): evaluate const-ness so getQueryComponents can be const
   template <Component T>
   Column& getColumn();
 
@@ -22,6 +23,9 @@ public:
   T& getUnchecked(EntityId entityId);
   template <Component T>
   void set(EntityId entityId, const T& value);
+
+  template <Component Arg, Component... Args>
+  std::vector<EntityId> getQueryComponents();
 
 private:
   // TODO (bgluzman): should not be static!
@@ -70,6 +74,21 @@ template <Component T>
 void ComponentRegistry::set(EntityId entityId, const T& value) {
   Column& col = getColumn<T>();
   col.set(entityId, value);
+}
+
+template <Component Arg, Component... Args>
+std::vector<EntityId> ComponentRegistry::getQueryComponents() {
+  if constexpr (sizeof...(Args) == 0) {
+    return getColumn<Arg>().getEntityIds();
+  } else {
+    auto argQueryComponents = getColumn<Arg>().getEntityIds();
+    auto argsQueryComponents = getQueryComponents<Args...>();
+
+    std::vector<EntityId> result;
+    std::ranges::set_intersection(argQueryComponents, argsQueryComponents,
+                                  std::back_inserter(result));
+    return result;
+  }
 }
 
 }  // namespace bad

@@ -1,3 +1,4 @@
+#include "SystemRegistry.h"
 #include "World.h"
 
 #include <cmath>
@@ -99,7 +100,6 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
   std::cout << "entity:Tag=" << **tagEntity << std::endl;
 
-  std::cout << "== experiments with queries ==" << std::endl;
   {
     bad::World queryWorld;
 
@@ -127,7 +127,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
     arrow.emplace<Position>(Vec2{4, 4});
     arrow.emplace<Velocity>(Vec2{5, 5});
     arrow.emplace<Ephemeral>();
-    
+
+    std::cout << "== manual queries  ==" << std::endl;
     queryWorld.query<Position, Velocity>(
         [](const Position& pos, const Velocity& vel) {
           std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
@@ -137,6 +138,16 @@ int main(int /*argc*/, char * /*argv*/[]) {
           std::cout << "entity=" << entity.getId() << " position=" << pos
                     << ", velocity=" << vel << std::endl;
         });
+
+    std::cout << "== stored system execution  ==" << std::endl;
+    queryWorld.addSystem<Name, Position, Velocity>(
+        [](const Name& name, Position pos, Velocity vel) {
+          std::cout << "name=" << name << " position=" << pos
+                    << ", velocity=" << vel << std::endl;
+        });
+    queryWorld.tick();
+    arrow.emplace<Position>(Vec2{9, 9});
+    queryWorld.tick();
   }
 
   return 0;

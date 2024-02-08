@@ -4,6 +4,7 @@
 #include "ComponentRegistry.h"
 #include "EntityHandle.h"
 #include "EntityRegistry.h"
+#include "SystemRegistry.h"
 
 #include <any>
 #include <cstdint>
@@ -24,18 +25,23 @@ public:
   std::optional<EntityHandle> getEntity(EntityId id);
 
   template <Component... Args>
+  void addSystem(std::invocable<Args...> auto&& system);
+  void tick();
+
+  template <Component... Args>
   void query(std::invocable<Args...> auto&& callback);
   template <Component... Args>
   void query(std::invocable<EntityHandle, Args...> auto&& callback);
 
-private:
-  template <Component Arg, Component... Args>
-  std::vector<EntityId> getQueryComponents();
+  // TODO (bgluzman): remove me!
+  ComponentRegistry& components() { return *components_; }
 
+private:
   std::unique_ptr<EntityRegistry> entities_ =
       std::make_unique<EntityRegistry>();
   std::unique_ptr<ComponentRegistry> components_ =
       std::make_unique<ComponentRegistry>();
+  std::unique_ptr<SystemRegistry> systems_ = std::make_unique<SystemRegistry>();
 };
 
 inline EntityHandle World::spawnEntity() {
@@ -50,31 +56,23 @@ inline std::optional<EntityHandle> World::getEntity(EntityId id) {
 
 template <Component... Args>
 void World::query(std::invocable<Args...> auto&& callback) {
-  for (EntityId id : getQueryComponents<Args...>()) {
+  for (EntityId id : components_->getQueryComponents<Args...>()) {
     callback(components_->getUnchecked<Args>(id)...);
   }
 }
 
 template <Component... Args>
 void World::query(std::invocable<EntityHandle, Args...> auto&& callback) {
-  for (EntityId id : getQueryComponents<Args...>()) {
+  for (EntityId id : components_->getQueryComponents<Args...>()) {
     callback(*getEntity(id), components_->getUnchecked<Args>(id)...);
   }
 }
 
-template <Component Arg, Component... Args>
-std::vector<EntityId> World::getQueryComponents() {
-  if constexpr (sizeof...(Args) == 0) {
-    return components_->getColumn<Arg>().getEntityIds();
-  } else {
-    auto argQueryComponents = components_->getColumn<Arg>().getEntityIds();
-    auto argsQueryComponents = getQueryComponents<Args...>();
-
-    std::vector<EntityId> result;
-    std::ranges::set_intersection(argQueryComponents, argsQueryComponents,
-                                  std::back_inserter(result));
-    return result;
-  }
+template <Component... Args>
+void World::addSystem(std::invocable<Args...> auto&& system) {
+  systems_->add<Args...>(std::forward<decltype(system)>(system));
 }
+
+inline void World::tick() { systems_->run(*components_); }
 
 }  // namespace bad
