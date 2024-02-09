@@ -142,7 +142,12 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cout << "== stored system execution  ==" << std::endl;
     queryWorld.addSystem<Name, Position, Velocity>(
         [](const Name& name, Position pos, Velocity vel) {
-          std::cout << "name=" << name << " position=" << pos
+          std::cout << "[system1] name=" << name << " position=" << pos
+                    << ", velocity=" << vel << std::endl;
+        });
+    queryWorld.addSystem<Name, Position, Velocity>(
+        [](const Name& name, Position pos, Velocity vel) {
+          std::cout << "[system2] name=" << name << " position=" << pos
                     << ", velocity=" << vel << std::endl;
         });
     queryWorld.tick();
