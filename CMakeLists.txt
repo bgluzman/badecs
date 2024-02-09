@@ -29,5 +29,7 @@ add_executable(badecs
         src/EntityRegistry.h
         src/SystemRegistry.cpp
         src/SystemRegistry.h
+        src/System.cpp
+        src/System.h
 )
 target_link_libraries(badecs PRIVATE Microsoft.GSL::GSL)
