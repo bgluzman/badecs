@@ -129,25 +129,23 @@ int main(int /*argc*/, char * /*argv*/[]) {
     arrow.emplace<Ephemeral>();
 
     std::cout << "== manual queries  ==" << std::endl;
+    queryWorld.query<Position, Velocity>([](const auto& pos, const auto& vel) {
+      std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
+    });
     queryWorld.query<Position, Velocity>(
-        [](const Position& pos, const Velocity& vel) {
-          std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
-        });
-    queryWorld.query<Position, Velocity>(
-        [](bad::EntityHandle entity, Position pos, Velocity vel) {
+        [](bad::EntityHandle entity, auto pos, auto vel) {
           std::cout << "entity=" << entity.getId() << " position=" << pos
                     << ", velocity=" << vel << std::endl;
         });
 
     std::cout << "== stored system execution  ==" << std::endl;
     queryWorld.addSystem<Name, Position, Velocity>(
-        [](const Name& name, Position pos, Velocity vel) {
+        [](const auto& name, auto pos, auto vel) {
           std::cout << "[system1] name=" << name << " position=" << pos
                     << ", velocity=" << vel << std::endl;
         });
     queryWorld.addSystem<Name, Position, Velocity>(
-        [](bad::EntityHandle entity, const Name& name, Position pos,
-           Velocity vel) {
+        [](bad::EntityHandle entity, const auto& name, auto pos, auto vel) {
           std::cout << "[system2] entity=" << entity.getId() << " name=" << name
                     << " position=" << pos << ", velocity=" << vel << std::endl;
         });
