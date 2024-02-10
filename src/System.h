@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "ComponentRegistry.h"
+#include "EntityHandle.h"
 
 #include <concepts>
 #include <functional>
@@ -14,7 +15,7 @@ namespace bad {
 class System {
 public:
   template <Component... Args>
-  static System construct(std::invocable<Args...> auto&& system) {
+  static System construct(SystemFunctor<Args...> auto&& system) {
     return System(std::forward<decltype(system)>(system), tag<Args...>{});
   }
 
@@ -30,9 +31,12 @@ private:
   template <Component... Args>
   struct tag {};
   template <Component... Args>
-  explicit System(std::invocable<Args...> auto&& system, tag<Args...>)
-      : system_(std::make_unique<SystemImpl<Args...>>(
-            std::forward<decltype(system)>(system))) {}
+  explicit System(SystemFunctor<Args...> auto&& system, tag<Args...>)
+      : system_(
+            // TODO (bgluzman): refactor this and use named concept?
+            std::make_unique<SystemImpl<
+                std::is_invocable_v<decltype(system), EntityHandle, Args...>,
+                Args...>>(std::forward<decltype(system)>(system))) {}
 
   struct SystemInterface {
     virtual ~SystemInterface() noexcept = default;
@@ -42,10 +46,10 @@ private:
                          EntityId           entityId) const = 0;
   };
 
-  template <Component... Args>
+  template <bool PassEntityHandle, Component... Args>
   struct SystemImpl : public SystemInterface {
   public:
-    explicit SystemImpl(std::invocable<Args...> auto&& system)
+    explicit SystemImpl(SystemFunctor<Args...> auto&& system)
         : system_(std::forward<decltype(system)>(system)) {}
 
     std::vector<EntityId>
@@ -55,11 +59,21 @@ private:
 
     void execute(ComponentRegistry& components,
                  EntityId           entityId) const override {
-      system_(components.getUnchecked<Args>(entityId)...);
+      if constexpr (PassEntityHandle) {
+        // TODO (bgluzman): pass gsl::not_null<ComponentRegistry*> instead?
+        system_(EntityHandle(entityId, &components),
+                components.getUnchecked<Args>(entityId)...);
+      } else {
+        system_(components.getUnchecked<Args>(entityId)...);
+      }
     }
 
   private:
-    std::function<void(Args...)> system_;
+    using SystemFunction =
+        std::conditional_t<PassEntityHandle,
+                           std::function<void(EntityHandle, Args...)>,
+                           std::function<void(Args...)>>;
+    SystemFunction system_;
   };
 
   std::unique_ptr<SystemInterface> system_;

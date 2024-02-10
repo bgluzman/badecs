@@ -146,9 +146,10 @@ int main(int /*argc*/, char * /*argv*/[]) {
                     << ", velocity=" << vel << std::endl;
         });
     queryWorld.addSystem<Name, Position, Velocity>(
-        [](const Name& name, Position pos, Velocity vel) {
-          std::cout << "[system2] name=" << name << " position=" << pos
-                    << ", velocity=" << vel << std::endl;
+        [](bad::EntityHandle entity, const Name& name, Position pos,
+           Velocity vel) {
+          std::cout << "[system2] entity=" << entity.getId() << " name=" << name
+                    << " position=" << pos << ", velocity=" << vel << std::endl;
         });
     queryWorld.tick();
     arrow.emplace<Position>(Vec2{9, 9});

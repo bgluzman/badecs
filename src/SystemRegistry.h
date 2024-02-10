@@ -13,6 +13,9 @@ class SystemRegistry {
 public:
   template <Component... Args>
   void add(std::invocable<Args...> auto&& system);
+  template <Component... Args>
+  void add(std::invocable<EntityHandle, Args...> auto&& system);
+
   void run(ComponentRegistry& components);
 
 private:
@@ -21,6 +24,11 @@ private:
 
 template <Component... Args>
 void SystemRegistry::add(std::invocable<Args...> auto&& system) {
+  systems_.emplace_back(
+      System::construct<Args...>(std::forward<decltype(system)>(system)));
+}
+template <Component... Args>
+void SystemRegistry::add(std::invocable<EntityHandle, Args...> auto&& system) {
   systems_.emplace_back(
       System::construct<Args...>(std::forward<decltype(system)>(system)));
 }

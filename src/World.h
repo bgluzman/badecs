@@ -25,13 +25,11 @@ public:
   std::optional<EntityHandle> getEntity(EntityId id);
 
   template <Component... Args>
-  void addSystem(std::invocable<Args...> auto&& system);
+  void addSystem(SystemFunctor<Args...> auto&& system);
   void tick();
 
   template <Component... Args>
-  void query(std::invocable<Args...> auto&& callback);
-  template <Component... Args>
-  void query(std::invocable<EntityHandle, Args...> auto&& callback);
+  void query(SystemFunctor<Args...> auto&& callback);
 
   // TODO (bgluzman): remove me!
   ComponentRegistry& components() { return *components_; }
@@ -55,21 +53,20 @@ inline std::optional<EntityHandle> World::getEntity(EntityId id) {
 }
 
 template <Component... Args>
-void World::query(std::invocable<Args...> auto&& callback) {
+void World::query(SystemFunctor<Args...> auto&& callback) {
   for (EntityId id : components_->getQueryComponents<Args...>()) {
-    callback(components_->getUnchecked<Args>(id)...);
+    // TODO (bgluzman): create dedicated concept for this?
+    if constexpr (std::is_invocable_v<decltype(callback), EntityHandle,
+                                      Args...>) {
+      callback(*getEntity(id), components_->getUnchecked<Args>(id)...);
+    } else {
+      callback(components_->getUnchecked<Args>(id)...);
+    }
   }
 }
 
 template <Component... Args>
-void World::query(std::invocable<EntityHandle, Args...> auto&& callback) {
-  for (EntityId id : components_->getQueryComponents<Args...>()) {
-    callback(*getEntity(id), components_->getUnchecked<Args>(id)...);
-  }
-}
-
-template <Component... Args>
-void World::addSystem(std::invocable<Args...> auto&& system) {
+void World::addSystem(SystemFunctor<Args...> auto&& system) {
   systems_->add<Args...>(std::forward<decltype(system)>(system));
 }
 
