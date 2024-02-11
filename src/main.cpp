@@ -1,4 +1,3 @@
-#include "SystemRegistry.h"
 #include "World.h"
 
 #include <cmath>
@@ -137,21 +136,6 @@ int main(int /*argc*/, char * /*argv*/[]) {
           std::cout << "entity=" << entity.getId() << " position=" << pos
                     << ", velocity=" << vel << std::endl;
         });
-
-    std::cout << "== stored system execution  ==" << std::endl;
-    queryWorld.addSystem<Name, Position, Velocity>(
-        [](const auto& name, auto pos, auto vel) {
-          std::cout << "[system1] name=" << name << " position=" << pos
-                    << ", velocity=" << vel << std::endl;
-        });
-    queryWorld.addSystem<Name, Position, Velocity>(
-        [](bad::EntityHandle entity, const auto& name, auto pos, auto vel) {
-          std::cout << "[system2] entity=" << entity.getId() << " name=" << name
-                    << " position=" << pos << ", velocity=" << vel << std::endl;
-        });
-    queryWorld.tick();
-    arrow.emplace<Position>(Vec2{9, 9});
-    queryWorld.tick();
   }
 
   return 0;

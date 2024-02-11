@@ -4,7 +4,6 @@
 #include "ComponentRegistry.h"
 #include "EntityHandle.h"
 #include "EntityRegistry.h"
-#include "SystemRegistry.h"
 
 #include <any>
 #include <cstdint>
@@ -25,21 +24,13 @@ public:
   std::optional<EntityHandle> getEntity(EntityId id);
 
   template <Component... Args>
-  void addSystem(SystemFunctor<Args...> auto&& system);
-  void tick();
-
-  template <Component... Args>
   void query(SystemFunctor<Args...> auto&& callback);
-
-  // TODO (bgluzman): remove me!
-  ComponentRegistry& components() { return *components_; }
 
 private:
   std::unique_ptr<EntityRegistry> entities_ =
       std::make_unique<EntityRegistry>();
   std::unique_ptr<ComponentRegistry> components_ =
       std::make_unique<ComponentRegistry>();
-  std::unique_ptr<SystemRegistry> systems_ = std::make_unique<SystemRegistry>();
 };
 
 inline EntityHandle World::spawnEntity() {
@@ -64,12 +55,5 @@ void World::query(SystemFunctor<Args...> auto&& callback) {
     }
   }
 }
-
-template <Component... Args>
-void World::addSystem(SystemFunctor<Args...> auto&& system) {
-  systems_->add<Args...>(std::forward<decltype(system)>(system));
-}
-
-inline void World::tick() { systems_->run(*components_); }
 
 }  // namespace bad
