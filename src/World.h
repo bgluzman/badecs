@@ -20,8 +20,8 @@ namespace bad {
 
 class World {
 public:
-  EntityHandle                spawnEntity();
-  std::optional<EntityHandle> getEntity(EntityId id);
+  EntityHandle                entity();
+  std::optional<EntityHandle> lookup(EntityId id);
 
   template <Component... Args>
   void query(QueryFunctor<Args...> auto&& callback);
@@ -33,11 +33,11 @@ private:
       std::make_unique<ComponentRegistry>();
 };
 
-inline EntityHandle World::spawnEntity() {
+inline EntityHandle World::entity() {
   return EntityHandle(entities_->add(), components_.get());
 }
 
-inline std::optional<EntityHandle> World::getEntity(EntityId id) {
+inline std::optional<EntityHandle> World::lookup(EntityId id) {
   return entities_->has(id)
              ? std::optional<EntityHandle>(EntityHandle(id, components_.get()))
              : std::nullopt;
@@ -49,7 +49,7 @@ void World::query(QueryFunctor<Args...> auto&& callback) {
     // TODO (bgluzman): create dedicated concept for this?
     if constexpr (std::is_invocable_v<decltype(callback), EntityHandle,
                                       Args...>) {
-      callback(*getEntity(id), components_->getUnchecked<Args>(id)...);
+      callback(*lookup(id), components_->getUnchecked<Args>(id)...);
     } else {
       callback(components_->getUnchecked<Args>(id)...);
     }
