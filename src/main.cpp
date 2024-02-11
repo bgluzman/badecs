@@ -51,8 +51,8 @@ std::ostream& operator<<(std::ostream& os, const MoveIntention& moveIntention) {
 int main(int /*argc*/, char * /*argv*/[]) {
   std::cout << std::boolalpha;
 
-  bad::World        world;
-  bad::EntityHandle entity = world.entity();
+  bad::World  world;
+  bad::Entity entity = world.entity();
 
   auto intEntity = entity.get<int>();
   auto doubleEntity = entity.get<double>();
@@ -75,12 +75,12 @@ int main(int /*argc*/, char * /*argv*/[]) {
   positionEntity = entity.get<Position>();
   tagEntity = entity.get<Tag>();
   std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
-  std::cout << "entity:int=" << **intEntity << std::endl;
+  std::cout << "entity:int=" << *intEntity << std::endl;
   std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
-  std::cout << "entity:double=" << **doubleEntity << std::endl;
+  std::cout << "entity:double=" << *doubleEntity << std::endl;
   std::cout << "entity:hasPosition=" << bool(positionEntity) << std::endl;
   std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
-  std::cout << "entity:Tag=" << **tagEntity << std::endl;
+  std::cout << "entity:Tag=" << *tagEntity << std::endl;
 
   entity.set<double>(INFINITY);
   entity.emplace<Position>(Vec2{100, 200});
@@ -91,37 +91,37 @@ int main(int /*argc*/, char * /*argv*/[]) {
   positionEntity = entity.get<Position>();
   tagEntity = entity.get<Tag>();
   std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
-  std::cout << "entity:int=" << **intEntity << std::endl;
+  std::cout << "entity:int=" << *intEntity << std::endl;
   std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
-  std::cout << "entity:double=" << **doubleEntity << std::endl;
+  std::cout << "entity:double=" << *doubleEntity << std::endl;
   std::cout << "entity:hasPosition=" << bool(positionEntity) << std::endl;
-  std::cout << "entity:Tag=" << **positionEntity << std::endl;
+  std::cout << "entity:Tag=" << *positionEntity << std::endl;
   std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
-  std::cout << "entity:Tag=" << **tagEntity << std::endl;
+  std::cout << "entity:Tag=" << *tagEntity << std::endl;
 
   {
     bad::World queryWorld;
 
-    bad::EntityHandle player = queryWorld.entity();
+    bad::Entity player = queryWorld.entity();
     player.emplace<Name>("player");
     player.emplace<Player>();
     player.emplace<Position>(Vec2{0, 0});
     player.emplace<MoveIntention>(Vec2{1, 1});
 
-    bad::EntityHandle rock = queryWorld.entity();
+    bad::Entity rock = queryWorld.entity();
     rock.emplace<Name>("rock");
     rock.emplace<Position>(Vec2{3, 3});
 
-    bad::EntityHandle building = queryWorld.entity();
+    bad::Entity building = queryWorld.entity();
     building.emplace<Name>("building");
     building.emplace<Position>(Vec2{5, 5});
 
-    bad::EntityHandle enemy = queryWorld.entity();
+    bad::Entity enemy = queryWorld.entity();
     enemy.emplace<Name>("enemy");
     enemy.emplace<Position>(Vec2{10, 10});
     enemy.emplace<Velocity>(Vec2{2, 2});
 
-    bad::EntityHandle arrow = queryWorld.entity();
+    bad::Entity arrow = queryWorld.entity();
     arrow.emplace<Name>("arrow");
     arrow.emplace<Position>(Vec2{4, 4});
     arrow.emplace<Velocity>(Vec2{5, 5});
@@ -132,7 +132,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
       std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
     });
     queryWorld.query<Position, Velocity>(
-        [](bad::EntityHandle entity, auto pos, auto vel) {
+        [](bad::Entity entity, auto pos, auto vel) {
           std::cout << "entity=" << entity.getId() << " position=" << pos
                     << ", velocity=" << vel << std::endl;
         });

@@ -11,16 +11,11 @@ class ComponentRegistry {
 public:
   template <Component T>
   static ComponentId getComponentId();
-  // TODO (bgluzman): evaluate const-ness so getQueryComponents can be const
-  template <Component T>
-  Column& getColumn();
 
   template <Component T, typename... Ts>
   void emplace(EntityId entityId, Ts&&...args);
   template <Component T>
-  std::optional<gsl::not_null<T *>> get(EntityId entityId);
-  template <Component T>
-  T& getUnchecked(EntityId entityId);
+  T *get(EntityId entityId);
   template <Component T>
   void set(EntityId entityId, const T& value);
 
@@ -28,6 +23,10 @@ public:
   std::vector<EntityId> getQueryComponents();
 
 private:
+  // TODO (bgluzman): evaluate const-ness so getQueryComponents can be const
+  template <Component T>
+  Column& getColumn();
+
   // TODO (bgluzman): should not be static!
   static inline ComponentId kComponentIdCounter = 1;
   std::unordered_map<ComponentId, std::unique_ptr<Column>> columns_ = {};
@@ -56,18 +55,13 @@ void ComponentRegistry::emplace(EntityId entityId, Ts&&...args) {
 }
 
 template <Component T>
-std::optional<gsl::not_null<T *>> ComponentRegistry::get(EntityId entityId) {
+T *ComponentRegistry::get(EntityId entityId) {
   ComponentId componentId = getComponentId<T>();
   if (auto it = columns_.find(componentId); it != columns_.end()) {
     return it->second->get<T>(entityId);
   } else {
-    return std::nullopt;
+    return nullptr;
   }
-}
-
-template <Component T>
-T& ComponentRegistry::getUnchecked(bad::EntityId entityId) {
-  return **get<T>(entityId);
 }
 
 template <Component T>

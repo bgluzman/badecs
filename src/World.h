@@ -2,7 +2,7 @@
 
 #include "Common.h"
 #include "ComponentRegistry.h"
-#include "EntityHandle.h"
+#include "Entity.h"
 #include "EntityRegistry.h"
 
 #include <any>
@@ -20,8 +20,8 @@ namespace bad {
 
 class World {
 public:
-  EntityHandle                entity();
-  std::optional<EntityHandle> lookup(EntityId id);
+  Entity                entity();
+  std::optional<Entity> lookup(EntityId id);
 
   template <Component... Args>
   void query(QueryFunctor<Args...> auto&& callback);
@@ -33,13 +33,13 @@ private:
       std::make_unique<ComponentRegistry>();
 };
 
-inline EntityHandle World::entity() {
-  return EntityHandle(entities_->add(), components_.get());
+inline Entity World::entity() {
+  return Entity(entities_->add(), components_.get());
 }
 
-inline std::optional<EntityHandle> World::lookup(EntityId id) {
+inline std::optional<Entity> World::lookup(EntityId id) {
   return entities_->has(id)
-             ? std::optional<EntityHandle>(EntityHandle(id, components_.get()))
+             ? std::optional<Entity>(Entity(id, components_.get()))
              : std::nullopt;
 }
 
@@ -47,11 +47,10 @@ template <Component... Args>
 void World::query(QueryFunctor<Args...> auto&& callback) {
   for (EntityId id : components_->getQueryComponents<Args...>()) {
     // TODO (bgluzman): create dedicated concept for this?
-    if constexpr (std::is_invocable_v<decltype(callback), EntityHandle,
-                                      Args...>) {
-      callback(*lookup(id), components_->getUnchecked<Args>(id)...);
+    if constexpr (std::is_invocable_v<decltype(callback), Entity, Args...>) {
+      callback(*lookup(id), *components_->get<Args>(id)...);
     } else {
-      callback(components_->getUnchecked<Args>(id)...);
+      callback(*components_->get<Args>(id)...);
     }
   }
 }
