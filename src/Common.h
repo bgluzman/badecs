@@ -12,7 +12,7 @@ template <typename T>
 concept Component = std::is_copy_constructible_v<T>;
 
 template <typename F, typename... Args>
-concept SystemFunctor =
+concept QueryFunctor =
     std::invocable<F, Args...> || std::invocable<F, EntityHandle, Args...>;
 
 using EntityId = std::uint32_t;

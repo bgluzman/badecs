@@ -24,7 +24,7 @@ public:
   std::optional<EntityHandle> getEntity(EntityId id);
 
   template <Component... Args>
-  void query(SystemFunctor<Args...> auto&& callback);
+  void query(QueryFunctor<Args...> auto&& callback);
 
 private:
   std::unique_ptr<EntityRegistry> entities_ =
@@ -44,7 +44,7 @@ inline std::optional<EntityHandle> World::getEntity(EntityId id) {
 }
 
 template <Component... Args>
-void World::query(SystemFunctor<Args...> auto&& callback) {
+void World::query(QueryFunctor<Args...> auto&& callback) {
   for (EntityId id : components_->getQueryComponents<Args...>()) {
     // TODO (bgluzman): create dedicated concept for this?
     if constexpr (std::is_invocable_v<decltype(callback), EntityHandle,
