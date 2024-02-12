@@ -20,7 +20,7 @@ namespace bad {
 
 class World {
 public:
-  Entity                entity();
+  Entity                spawn();
   std::optional<Entity> lookup(EntityId id);
 
   template <Component... Args>
@@ -33,7 +33,7 @@ private:
       std::make_unique<ComponentRegistry>();
 };
 
-inline Entity World::entity() {
+inline Entity World::spawn() {
   return Entity(entities_->add(), components_.get());
 }
 

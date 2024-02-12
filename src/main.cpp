@@ -52,7 +52,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cout << std::boolalpha;
 
   bad::World  world;
-  bad::Entity entity = world.entity();
+  bad::Entity entity = world.spawn();
 
   auto intEntity = entity.get<int>();
   auto doubleEntity = entity.get<double>();
@@ -102,26 +102,26 @@ int main(int /*argc*/, char * /*argv*/[]) {
   {
     bad::World queryWorld;
 
-    bad::Entity player = queryWorld.entity();
+    bad::Entity player = queryWorld.spawn();
     player.emplace<Name>("player");
     player.emplace<Player>();
     player.emplace<Position>(Vec2{0, 0});
     player.emplace<MoveIntention>(Vec2{1, 1});
 
-    bad::Entity rock = queryWorld.entity();
+    bad::Entity rock = queryWorld.spawn();
     rock.emplace<Name>("rock");
     rock.emplace<Position>(Vec2{3, 3});
 
-    bad::Entity building = queryWorld.entity();
+    bad::Entity building = queryWorld.spawn();
     building.emplace<Name>("building");
     building.emplace<Position>(Vec2{5, 5});
 
-    bad::Entity enemy = queryWorld.entity();
+    bad::Entity enemy = queryWorld.spawn();
     enemy.emplace<Name>("enemy");
     enemy.emplace<Position>(Vec2{10, 10});
     enemy.emplace<Velocity>(Vec2{2, 2});
 
-    bad::Entity arrow = queryWorld.entity();
+    bad::Entity arrow = queryWorld.spawn();
     arrow.emplace<Name>("arrow");
     arrow.emplace<Position>(Vec2{4, 4});
     arrow.emplace<Velocity>(Vec2{5, 5});
