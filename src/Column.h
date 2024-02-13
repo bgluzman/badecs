@@ -13,7 +13,7 @@ namespace bad {
 
 struct Column {
 public:
-  std::vector<EntityId> getEntityIds();
+  std::vector<EntityId> getEntityIds() const;
 
   template <Component T, typename... Ts>
   void emplace(EntityId entityId, Ts&&...args);

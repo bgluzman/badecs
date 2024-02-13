@@ -1,6 +1,7 @@
 #include "World.h"
 
 #include <cmath>
+#include <complex>
 #include <iostream>
 #include <string>
 
@@ -136,6 +137,11 @@ int main(int /*argc*/, char * /*argv*/[]) {
           std::cout << "entity=" << entity.getId() << " position=" << pos
                     << ", velocity=" << vel << std::endl;
         });
+    queryWorld.query<Position>(
+        [](auto pos) { std::cout << "position=" << pos << std::endl; });
+    queryWorld.query<std::complex<double>>([](const auto& complex) {
+      std::cout << "complex=" << complex << std::endl;
+    });
   }
 
   return 0;

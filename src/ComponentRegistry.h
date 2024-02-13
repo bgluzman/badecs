@@ -20,16 +20,21 @@ public:
   void set(EntityId entityId, const T& value);
 
   template <Component Arg, Component... Args>
-  std::vector<EntityId> getQueryComponents();
+  [[nodiscard]] std::vector<EntityId> getQueryComponents() const;
 
 private:
-  // TODO (bgluzman): evaluate const-ness so getQueryComponents can be const
   template <Component T>
-  Column& getColumn();
+  [[nodiscard]] Column *getColumn();
+  template <Component T>
+  [[nodiscard]] const Column *getColumn() const;
+  template <Component T>
+  Column& getOrCreateColumn();
 
   // TODO (bgluzman): should not be static!
   static inline ComponentId kComponentIdCounter = 1;
-  std::unordered_map<ComponentId, std::unique_ptr<Column>> columns_ = {};
+  // XXX: std::unordered_map's semantics are important here! See similar note
+  //  in Column.h.
+  std::unordered_map<ComponentId, Column> columns_ = {};
 };
 
 template <Component T>
@@ -39,43 +44,61 @@ ComponentId ComponentRegistry::getComponentId() {
 }
 
 template <Component T>
-inline Column& ComponentRegistry::getColumn() {
-  ComponentId              componentId = getComponentId<T>();
-  std::unique_ptr<Column>& col = columns_[componentId];
-  if (!col) {
-    col = std::make_unique<Column>();
+Column *ComponentRegistry::getColumn() {
+  return const_cast<Column *>(
+      const_cast<const ComponentRegistry *>(this)->getColumn<T>());
+}
+
+template <Component T>
+const Column *ComponentRegistry::getColumn() const {
+  ComponentId componentId = getComponentId<T>();
+  if (auto it = columns_.find(componentId); it != columns_.end()) {
+    return &it->second;
   }
-  return *col;
+  return nullptr;
+}
+
+template <Component T>
+Column& ComponentRegistry::getOrCreateColumn() {
+  if (Column *col = getColumn<T>(); col) {
+    return *col;
+  }
+  ComponentId componentId = getComponentId<T>();
+  return columns_.emplace(componentId, Column{}).first->second;
 }
 
 template <Component T, typename... Ts>
 void ComponentRegistry::emplace(EntityId entityId, Ts&&...args) {
-  Column& col = getColumn<T>();
+  Column& col = getOrCreateColumn<T>();
   col.emplace<T>(entityId, std::forward<Ts>(args)...);
 }
 
 template <Component T>
 T *ComponentRegistry::get(EntityId entityId) {
-  ComponentId componentId = getComponentId<T>();
-  if (auto it = columns_.find(componentId); it != columns_.end()) {
-    return it->second->get<T>(entityId);
-  } else {
-    return nullptr;
+  if (Column *col = getColumn<T>(); col) {
+    return col->get<T>(entityId);
   }
+  return nullptr;
 }
 
 template <Component T>
 void ComponentRegistry::set(EntityId entityId, const T& value) {
-  Column& col = getColumn<T>();
+  Column& col = getOrCreateColumn<T>();
   col.set(entityId, value);
 }
 
 template <Component Arg, Component... Args>
-std::vector<EntityId> ComponentRegistry::getQueryComponents() {
+std::vector<EntityId> ComponentRegistry::getQueryComponents() const {
+  const Column *argQueryColumn = getColumn<Arg>();
+  if (!argQueryColumn) {
+    // TODO (bgluzman): print a diagnostic warning?
+    return {};
+  }
+
   if constexpr (sizeof...(Args) == 0) {
-    return getColumn<Arg>().getEntityIds();
+    return argQueryColumn->getEntityIds();
   } else {
-    auto argQueryComponents = getColumn<Arg>().getEntityIds();
+    auto argQueryComponents = argQueryColumn->getEntityIds();
     auto argsQueryComponents = getQueryComponents<Args...>();
 
     std::vector<EntityId> result;

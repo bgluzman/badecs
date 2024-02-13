@@ -2,7 +2,7 @@
 
 namespace bad {
 
-std::vector<EntityId> Column::getEntityIds() {
+std::vector<EntityId> Column::getEntityIds() const {
   std::vector<EntityId> entityIds;
   entityIds.reserve(components_.size());
   std::transform(components_.begin(), components_.end(),
