@@ -1,3 +1,4 @@
+#include "Commands.h"
 #include "World.h"
 
 #include <cmath>
@@ -142,6 +143,18 @@ int main(int /*argc*/, char * /*argv*/[]) {
     queryWorld.query<std::complex<double>>([](const auto& complex) {
       std::cout << "complex=" << complex << std::endl;
     });
+
+    std::cout << "arrow:hasTag=" << bool(arrow.get<Tag>()) << std::endl;
+    bad::Commands commands;
+    queryWorld.query<Name, Ephemeral>([&commands](bad::Entity entity,
+                                                  const auto& name,
+                                                  const auto& ephemeral) {
+      std::cout << "name=" << name << ", ephemeral=" << ephemeral << std::endl;
+      commands.setComponent(entity.getId(), Tag{});
+    });
+    std::cout << "arrow:hasTag=" << bool(arrow.get<Tag>()) << std::endl;
+    commands.execute(&queryWorld);
+    std::cout << "arrow:hasTag=" << bool(arrow.get<Tag>()) << std::endl;
   }
 
   return 0;
