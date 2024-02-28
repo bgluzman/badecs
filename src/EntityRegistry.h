@@ -10,7 +10,7 @@ namespace bad {
 class EntityRegistry {
 public:
   EntityId add();
-  bool     has(EntityId id) noexcept;
+  bool     has(EntityId id) const noexcept;
 
 private:
   EntityId                     entity_counter_ = 1;
@@ -22,7 +22,7 @@ inline EntityId EntityRegistry::add() {
   return entity_counter_++;
 }
 
-inline bool EntityRegistry::has(EntityId id) noexcept {
+inline bool EntityRegistry::has(EntityId id) const noexcept {
   return entities_.contains(id);
 }
 

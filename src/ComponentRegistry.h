@@ -15,9 +15,11 @@ public:
   template <Component T, typename... Ts>
   void emplace(EntityId entityId, Ts&&...args);
   template <Component T>
-  T *get(EntityId entityId);
-  template <Component T>
   void set(EntityId entityId, const T& value);
+  template <Component T>
+  bool has(EntityId entityId) const noexcept;
+  template <Component T>
+  T *get(EntityId entityId);
 
   template <Component Arg, Component... Args>
   [[nodiscard]] std::vector<EntityId> getQueryComponents() const;
@@ -74,17 +76,23 @@ void ComponentRegistry::emplace(EntityId entityId, Ts&&...args) {
 }
 
 template <Component T>
-T *ComponentRegistry::get(EntityId entityId) {
-  if (Column *col = getColumn<T>(); col) {
-    return col->get<T>(entityId);
-  }
-  return nullptr;
+bool ComponentRegistry::has(EntityId entityId) const noexcept {
+  const Column *col = getColumn<T>();
+  return col && col->has<T>(entityId);
 }
 
 template <Component T>
 void ComponentRegistry::set(EntityId entityId, const T& value) {
   Column& col = getOrCreateColumn<T>();
   col.set(entityId, value);
+}
+
+template <Component T>
+T *ComponentRegistry::get(EntityId entityId) {
+  if (Column *col = getColumn<T>(); col) {
+    return col->get<T>(entityId);
+  }
+  return nullptr;
 }
 
 template <Component Arg, Component... Args>

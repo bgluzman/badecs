@@ -18,9 +18,11 @@ public:
   template <Component T, typename... Ts>
   void emplace(EntityId entityId, Ts&&...args);
   template <Component T>
-  T *get(EntityId entityId);
-  template <Component T>
   void set(EntityId entityId, const T& value);
+  template <Component T>
+  bool has(EntityId entityId) const noexcept;
+  template <Component T>
+  T *get(EntityId entityId);
 
 private:
   // XXX: std::unordered_map's pointer/reference invalidation semantics here are
@@ -38,17 +40,22 @@ void Column::emplace(EntityId entityId, Ts&&...args) {
 }
 
 template <Component T>
+void Column::set(EntityId entityId, const T& value) {
+  components_[entityId] = value;
+}
+
+template <Component T>
+bool Column::has(EntityId entityId) const noexcept {
+  return components_.contains(entityId);
+}
+
+template <Component T>
 T *Column::get(EntityId entityId) {
   if (auto it = components_.find(entityId); it != components_.end()) {
     return &std::any_cast<T&>(it->second);
   } else {
     return nullptr;
   }
-}
-
-template <Component T>
-void Column::set(EntityId entityId, const T& value) {
-  components_[entityId] = value;
 }
 
 }  // namespace bad

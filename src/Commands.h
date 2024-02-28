@@ -16,7 +16,7 @@ public:
   //  void destroyEntity();
   //  void removeComponent();
   template <Component T>
-  void setComponent(Entity entity, const T& value);
+  void setComponent(EntityId entity, const T& value);
 
   void execute(gsl::not_null<World *> world);
 
@@ -26,8 +26,10 @@ private:
 };
 
 template <Component T>
-void Commands::setComponent(Entity entity, const T& value) {
-  commands_.push_back([entity, value](World *) mutable { entity.set(value); });
+void Commands::setComponent(EntityId entity, const T& value) {
+  commands_.push_back([entity, value](World *world) mutable {
+    world->setComponent(entity, value);
+  });
 }
 
 inline void Commands::execute(gsl::not_null<World *> world) {
