@@ -16,7 +16,7 @@ public:
   //  void destroyEntity();
   //  void removeComponent();
   template <Component T>
-  void setComponent(EntityId id, const T& value);
+  void setComponent(Entity entity, const T& value);
 
   void execute(gsl::not_null<World *> world);
 
@@ -37,16 +37,10 @@ private:
 };
 
 template <Component T>
-void Commands::setComponent(EntityId id, const T& value) {
+void Commands::setComponent(Entity entity, const T& value) {
   commands_.push_back({
       .type = CommandType::kSetComponent,
-      .deferred =
-          [id, value](World *world) {
-            std::optional<Entity> entity = world->lookup(id);
-            if (entity) {
-              entity->set<T>(value);
-            }
-          },
+      .deferred = [entity, value](World *) mutable { entity.set(value); },
   });
 }
 

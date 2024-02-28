@@ -150,7 +150,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
                                                   const auto& name,
                                                   const auto& ephemeral) {
       std::cout << "name=" << name << ", ephemeral=" << ephemeral << std::endl;
-      commands.setComponent(entity.getId(), Tag{});
+      commands.setComponent(entity, Tag{});
     });
     std::cout << "arrow:hasTag=" << bool(arrow.get<Tag>()) << std::endl;
     commands.execute(&queryWorld);
