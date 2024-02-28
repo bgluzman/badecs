@@ -27,9 +27,9 @@ public:
   template <Component T>
   void setComponent(EntityId entity, const T& value);
   template <Component T>
-  bool hasComponent(EntityId entity) const noexcept;
+  [[nodiscard]] bool hasComponent(EntityId entity) const noexcept;
   template <Component T>
-  T *getComponent(EntityId entity);
+  [[nodiscard]] T *getComponent(EntityId entity);
 
   template <Component... Args>
   void forEach(QueryFunctor<Args...> auto&& callback);

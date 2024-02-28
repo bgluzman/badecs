@@ -9,8 +9,8 @@ namespace bad {
 
 class EntityRegistry {
 public:
-  EntityId add();
-  bool     has(EntityId id) const noexcept;
+  EntityId           add();
+  [[nodiscard]] bool has(EntityId id) const noexcept;
 
 private:
   EntityId                     entity_counter_ = 1;

@@ -19,9 +19,9 @@ public:
   template <Component T>
   void set(EntityId entityId, const T& value);
   template <Component T>
-  bool has(EntityId entityId) const noexcept;
+  [[nodiscard]] bool has(EntityId entityId) const noexcept;
   template <Component T>
-  T *get(EntityId entityId);
+  [[nodiscard]] T *get(EntityId entityId);
 
   template <Component Arg, Component... Args>
   [[nodiscard]] std::set<EntityId> getQueryComponents() const;

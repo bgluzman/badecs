@@ -18,9 +18,9 @@ public:
   template <Component T>
   void set(EntityId entityId, const T& value);
   template <Component T>
-  bool has(EntityId entityId) const noexcept;
+  [[nodiscard]] bool has(EntityId entityId) const noexcept;
   template <Component T>
-  T *get(EntityId entityId);
+  [[nodiscard]] T *get(EntityId entityId);
 
   [[nodiscard]] decltype(auto) getEntityIds() const;
 
