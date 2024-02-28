@@ -55,31 +55,49 @@ int main(int /*argc*/, char * /*argv*/[]) {
   bad::World    world;
   bad::EntityId entity = world.create();
 
-  world.set<int>(entity, 42);
-  world.set<double>(entity, NAN);
-  world.emplace<Tag>(entity);
-
   auto *intEntity = world.get<int>(entity);
   auto *doubleEntity = world.get<double>(entity);
   auto *positionEntity = world.get<Position>(entity);
   auto *tagEntity = world.get<Tag>(entity);
 
-  std::cout << "== before modifications ==" << std::endl;
+  std::cout << "== before ==" << std::endl;
+  std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
+  std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
+  std::cout << "entity:hasPosition=" << bool(positionEntity) << std::endl;
+  std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
+
+  world.set<int>(entity, 42);
+  world.set<double>(entity, NAN);
+  world.emplace<Tag>(entity);
+
+  std::cout << "== after modifications (1) ==" << std::endl;
+  intEntity = world.get<int>(entity);
+  doubleEntity = world.get<double>(entity);
+  positionEntity = world.get<Position>(entity);
+  tagEntity = world.get<Tag>(entity);
+  std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
   std::cout << "entity:int=" << *intEntity << std::endl;
+  std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
   std::cout << "entity:double=" << *doubleEntity << std::endl;
+  std::cout << "entity:hasPosition=" << bool(positionEntity) << std::endl;
+  std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
   std::cout << "entity:Tag=" << *tagEntity << std::endl;
 
   world.set<double>(entity, INFINITY);
   world.emplace<Position>(entity, Vec2{100, 200});
 
-  std::cout << "== after modifications ==" << std::endl;
+  std::cout << "== after modifications (2) ==" << std::endl;
   intEntity = world.get<int>(entity);
   doubleEntity = world.get<double>(entity);
   positionEntity = world.get<Position>(entity);
   tagEntity = world.get<Tag>(entity);
+  std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
   std::cout << "entity:int=" << *intEntity << std::endl;
+  std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
   std::cout << "entity:double=" << *doubleEntity << std::endl;
+  std::cout << "entity:hasPosition=" << bool(positionEntity) << std::endl;
   std::cout << "entity:Tag=" << *positionEntity << std::endl;
+  std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
   std::cout << "entity:Tag=" << *tagEntity << std::endl;
 
   {
