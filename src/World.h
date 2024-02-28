@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "ComponentRegistry.h"
+#include "Entity.h"
 #include "EntityRegistry.h"
 
 #include <any>
@@ -19,15 +20,8 @@ namespace bad {
 
 class World {
 public:
-  EntityId           create();
-  [[nodiscard]] bool contains(EntityId id) const noexcept;
-
-  template <Component T, typename... Ts>
-  void emplace(EntityId id, Ts&&...args);
-  template <Component T>
-  T *get(EntityId id);
-  template <Component T>
-  void set(EntityId id, const T& value);
+  Entity                spawn();
+  std::optional<Entity> lookup(EntityId id);
 
   template <Component... Args>
   void query(QueryFunctor<Args...> auto&& callback);
@@ -39,33 +33,22 @@ private:
       std::make_unique<ComponentRegistry>();
 };
 
-inline EntityId World::create() { return entities_->add(); }
-
-inline bool World::contains(EntityId id) const noexcept {
-  return entities_->has(id);
+inline Entity World::spawn() {
+  return Entity(entities_->add(), components_.get());
 }
 
-template <Component T, typename... Ts>
-void World::emplace(EntityId id, Ts&&...args) {
-  components_->emplace<T, Ts...>(id, std::forward<Ts>(args)...);
-}
-
-template <Component T>
-T *World::get(EntityId id) {
-  return components_->get<T>(id);
-}
-
-template <Component T>
-void World::set(EntityId id, const T& value) {
-  components_->set(id, value);
+inline std::optional<Entity> World::lookup(EntityId id) {
+  return entities_->has(id)
+             ? std::optional<Entity>(Entity(id, components_.get()))
+             : std::nullopt;
 }
 
 template <Component... Args>
 void World::query(QueryFunctor<Args...> auto&& callback) {
   for (EntityId id : components_->getQueryComponents<Args...>()) {
     // TODO (bgluzman): create dedicated concept for this?
-    if constexpr (std::is_invocable_v<decltype(callback), EntityId, Args...>) {
-      callback(id, *components_->get<Args>(id)...);
+    if constexpr (std::is_invocable_v<decltype(callback), Entity, Args...>) {
+      callback(*lookup(id), *components_->get<Args>(id)...);
     } else {
       callback(*components_->get<Args>(id)...);
     }

@@ -9,8 +9,8 @@ namespace bad {
 
 class EntityRegistry {
 public:
-  EntityId           add();
-  [[nodiscard]] bool has(EntityId id) const noexcept;
+  EntityId add();
+  bool     has(EntityId id) noexcept;
 
 private:
   EntityId                     entity_counter_ = 1;
@@ -22,7 +22,7 @@ inline EntityId EntityRegistry::add() {
   return entity_counter_++;
 }
 
-inline bool EntityRegistry::has(EntityId id) const noexcept {
+inline bool EntityRegistry::has(EntityId id) noexcept {
   return entities_.contains(id);
 }
 

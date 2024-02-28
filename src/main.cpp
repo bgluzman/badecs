@@ -52,13 +52,13 @@ std::ostream& operator<<(std::ostream& os, const MoveIntention& moveIntention) {
 int main(int /*argc*/, char * /*argv*/[]) {
   std::cout << std::boolalpha;
 
-  bad::World    world;
-  bad::EntityId entity = world.create();
+  bad::World  world;
+  bad::Entity entity = world.spawn();
 
-  auto *intEntity = world.get<int>(entity);
-  auto *doubleEntity = world.get<double>(entity);
-  auto *positionEntity = world.get<Position>(entity);
-  auto *tagEntity = world.get<Tag>(entity);
+  auto intEntity = entity.get<int>();
+  auto doubleEntity = entity.get<double>();
+  auto positionEntity = entity.get<Position>();
+  auto tagEntity = entity.get<Tag>();
 
   std::cout << "== before ==" << std::endl;
   std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
@@ -66,15 +66,15 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cout << "entity:hasPosition=" << bool(positionEntity) << std::endl;
   std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
 
-  world.set<int>(entity, 42);
-  world.set<double>(entity, NAN);
-  world.emplace<Tag>(entity);
+  entity.set<int>(42);
+  entity.set<double>(NAN);
+  entity.emplace<Tag>();
 
   std::cout << "== after modifications (1) ==" << std::endl;
-  intEntity = world.get<int>(entity);
-  doubleEntity = world.get<double>(entity);
-  positionEntity = world.get<Position>(entity);
-  tagEntity = world.get<Tag>(entity);
+  intEntity = entity.get<int>();
+  doubleEntity = entity.get<double>();
+  positionEntity = entity.get<Position>();
+  tagEntity = entity.get<Tag>();
   std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
   std::cout << "entity:int=" << *intEntity << std::endl;
   std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
@@ -83,14 +83,14 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cout << "entity:hasTag=" << bool(tagEntity) << std::endl;
   std::cout << "entity:Tag=" << *tagEntity << std::endl;
 
-  world.set<double>(entity, INFINITY);
-  world.emplace<Position>(entity, Vec2{100, 200});
+  entity.set<double>(INFINITY);
+  entity.emplace<Position>(Vec2{100, 200});
 
   std::cout << "== after modifications (2) ==" << std::endl;
-  intEntity = world.get<int>(entity);
-  doubleEntity = world.get<double>(entity);
-  positionEntity = world.get<Position>(entity);
-  tagEntity = world.get<Tag>(entity);
+  intEntity = entity.get<int>();
+  doubleEntity = entity.get<double>();
+  positionEntity = entity.get<Position>();
+  tagEntity = entity.get<Tag>();
   std::cout << "entity:hasInt=" << bool(intEntity) << std::endl;
   std::cout << "entity:int=" << *intEntity << std::endl;
   std::cout << "entity:hasDouble=" << bool(doubleEntity) << std::endl;
@@ -103,38 +103,38 @@ int main(int /*argc*/, char * /*argv*/[]) {
   {
     bad::World queryWorld;
 
-    bad::EntityId player = queryWorld.create();
-    queryWorld.emplace<Name>(player, "player");
-    queryWorld.emplace<Player>(player);
-    queryWorld.emplace<Position>(player, Vec2{0, 0});
-    queryWorld.emplace<MoveIntention>(player, Vec2{1, 1});
+    bad::Entity player = queryWorld.spawn();
+    player.emplace<Name>("player");
+    player.emplace<Player>();
+    player.emplace<Position>(Vec2{0, 0});
+    player.emplace<MoveIntention>(Vec2{1, 1});
 
-    bad::EntityId rock = queryWorld.create();
-    queryWorld.emplace<Name>(rock, "rock");
-    queryWorld.emplace<Position>(rock, Vec2{3, 3});
+    bad::Entity rock = queryWorld.spawn();
+    rock.emplace<Name>("rock");
+    rock.emplace<Position>(Vec2{3, 3});
 
-    bad::EntityId building = queryWorld.create();
-    queryWorld.emplace<Name>(building, "building");
-    queryWorld.emplace<Position>(building, Vec2{5, 5});
+    bad::Entity building = queryWorld.spawn();
+    building.emplace<Name>("building");
+    building.emplace<Position>(Vec2{5, 5});
 
-    bad::EntityId enemy = queryWorld.create();
-    queryWorld.emplace<Name>(enemy, "enemy");
-    queryWorld.emplace<Position>(enemy, Vec2{10, 10});
-    queryWorld.emplace<Velocity>(enemy, Vec2{2, 2});
+    bad::Entity enemy = queryWorld.spawn();
+    enemy.emplace<Name>("enemy");
+    enemy.emplace<Position>(Vec2{10, 10});
+    enemy.emplace<Velocity>(Vec2{2, 2});
 
-    bad::EntityId arrow = queryWorld.create();
-    queryWorld.emplace<Name>(arrow, "arrow");
-    queryWorld.emplace<Position>(arrow, Vec2{4, 4});
-    queryWorld.emplace<Velocity>(arrow, Vec2{5, 5});
-    queryWorld.emplace<Ephemeral>(arrow);
+    bad::Entity arrow = queryWorld.spawn();
+    arrow.emplace<Name>("arrow");
+    arrow.emplace<Position>(Vec2{4, 4});
+    arrow.emplace<Velocity>(Vec2{5, 5});
+    arrow.emplace<Ephemeral>();
 
     std::cout << "== manual queries  ==" << std::endl;
     queryWorld.query<Position, Velocity>([](const auto& pos, const auto& vel) {
       std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
     });
     queryWorld.query<Position, Velocity>(
-        [](bad::EntityId entity, auto pos, auto vel) {
-          std::cout << "entity=" << entity << " position=" << pos
+        [](bad::Entity entity, auto pos, auto vel) {
+          std::cout << "entity=" << entity.getId() << " position=" << pos
                     << ", velocity=" << vel << std::endl;
         });
     queryWorld.query<Position>(
