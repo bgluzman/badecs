@@ -117,25 +117,26 @@ int main(int /*argc*/, char * /*argv*/[]) {
     queryWorld.emplaceComponent<Ephemeral>(arrow);
 
     std::cout << "== manual queries  ==" << std::endl;
-    queryWorld.query<Position, Velocity>([](const auto& pos, const auto& vel) {
-      std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
-    });
-    queryWorld.query<Position, Velocity>(
+    queryWorld.forEach<Position, Velocity>(
+        [](const auto& pos, const auto& vel) {
+          std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
+        });
+    queryWorld.forEach<Position, Velocity>(
         [](bad::EntityId entity, auto pos, auto vel) {
           std::cout << "entity=" << entity << " position=" << pos
                     << ", velocity=" << vel << std::endl;
         });
-    queryWorld.query<Position>(
+    queryWorld.forEach<Position>(
         [](auto pos) { std::cout << "position=" << pos << std::endl; });
-    queryWorld.query<std::complex<double>>([](const auto& complex) {
+    queryWorld.forEach<std::complex<double>>([](const auto& complex) {
       std::cout << "complex=" << complex << std::endl;
     });
 
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
     bad::Commands commands;
-    queryWorld.query<Name, Ephemeral>([&commands](bad::EntityId entity,
-                                                  const auto&   name,
-                                                  const auto&   ephemeral) {
+    queryWorld.forEach<Name, Ephemeral>([&commands](bad::EntityId entity,
+                                                    const auto&   name,
+                                                    const auto&   ephemeral) {
       std::cout << "name=" << name << ", ephemeral=" << ephemeral << '\n';
       commands.setComponent(entity, Tag{});
     });

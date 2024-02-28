@@ -32,7 +32,7 @@ public:
   T *getComponent(EntityId entity);
 
   template <Component... Args>
-  void query(QueryFunctor<Args...> auto&& callback);
+  void forEach(QueryFunctor<Args...> auto&& callback);
 
 private:
   std::unique_ptr<EntityRegistry> entities_ =
@@ -68,7 +68,7 @@ T *World::getComponent(EntityId entity) {
 }
 
 template <Component... Args>
-void World::query(QueryFunctor<Args...> auto&& callback) {
+void World::forEach(QueryFunctor<Args...> auto&& callback) {
   for (EntityId id : components_->getQueryComponents<Args...>()) {
     // TODO (bgluzman): create dedicated concept for this?
     if constexpr (std::is_invocable_v<decltype(callback), EntityId, Args...>) {
