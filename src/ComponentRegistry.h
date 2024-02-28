@@ -4,6 +4,8 @@
 
 #include <any>
 #include <gsl/gsl>
+#include <set>
+#include <unordered_map>
 
 namespace bad {
 
@@ -22,7 +24,7 @@ public:
   T *get(EntityId entityId);
 
   template <Component Arg, Component... Args>
-  [[nodiscard]] std::vector<EntityId> getQueryComponents() const;
+  [[nodiscard]] std::set<EntityId> getQueryComponents() const;
 
 private:
   template <Component T>
@@ -96,7 +98,7 @@ T *ComponentRegistry::get(EntityId entityId) {
 }
 
 template <Component Arg, Component... Args>
-std::vector<EntityId> ComponentRegistry::getQueryComponents() const {
+std::set<EntityId> ComponentRegistry::getQueryComponents() const {
   const Column *argQueryColumn = getColumn<Arg>();
   if (!argQueryColumn) {
     // TODO (bgluzman): print a diagnostic warning?
@@ -104,14 +106,15 @@ std::vector<EntityId> ComponentRegistry::getQueryComponents() const {
   }
 
   if constexpr (sizeof...(Args) == 0) {
-    return argQueryColumn->getEntityIds();
+    return argQueryColumn->getEntityIds() |
+           std::ranges::to<std::set<EntityId>>();
   } else {
     auto argQueryComponents = argQueryColumn->getEntityIds();
     auto argsQueryComponents = getQueryComponents<Args...>();
 
-    std::vector<EntityId> result;
+    std::set<EntityId> result;
     std::ranges::set_intersection(argQueryComponents, argsQueryComponents,
-                                  std::back_inserter(result));
+                                  std::inserter(result, result.begin()));
     return result;
   }
 }

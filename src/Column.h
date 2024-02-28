@@ -2,19 +2,17 @@
 
 #include "Common.h"
 
-#include <algorithm>
 #include <any>
 #include <gsl/gsl>
+#include <map>
 #include <memory>
-#include <unordered_map>
+#include <ranges>
 #include <vector>
 
 namespace bad {
 
 struct Column {
 public:
-  [[nodiscard]] std::vector<EntityId> getEntityIds() const;
-
   template <Component T, typename... Ts>
   void emplace(EntityId entityId, Ts&&...args);
   template <Component T>
@@ -24,13 +22,14 @@ public:
   template <Component T>
   T *get(EntityId entityId);
 
+  [[nodiscard]] decltype(auto) getEntityIds() const;
+
 private:
-  // XXX: std::unordered_map's pointer/reference invalidation semantics here are
+  // XXX: std::map's pointer/reference invalidation semantics here are
   //  incredibly important since get() returns a pointer into the map. If
-  //  another map implementation is chosen, get() should have different
-  //  semantics OR the values in the map should be pointers. See:
-  //  https://en.cppreference.com/w/cpp/container/unordered_map#Iterator_invalidation
-  std::unordered_map<EntityId, std::any> components_ = {};
+  //  another map implementation is chosen, it is possible that get() should
+  //  have different semantics OR the values in the map should be pointers.
+  std::map<EntityId, std::any> components_ = {};
 };
 
 template <Component T, typename... Ts>
@@ -56,6 +55,10 @@ T *Column::get(EntityId entityId) {
   } else {
     return nullptr;
   }
+}
+
+inline decltype(auto) Column::getEntityIds() const {
+  return components_ | std::views::keys;
 }
 
 }  // namespace bad

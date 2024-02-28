@@ -116,7 +116,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     queryWorld.emplaceComponent<Velocity>(arrow, Vec2{5, 5});
     queryWorld.emplaceComponent<Ephemeral>(arrow);
 
-    std::cout << "== manual queries  ==" << std::endl;
+    std::cout << "\n== manual queries  ==" << std::endl;
     queryWorld.forEach<Position, Velocity>(
         [](const auto& pos, const auto& vel) {
           std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
