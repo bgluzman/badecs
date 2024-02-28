@@ -13,7 +13,15 @@ template <typename T>
 concept Component = std::is_copy_constructible_v<T>;
 
 template <typename F, typename... Args>
-concept QueryFunctor =
-    std::invocable<F, Args...> || std::invocable<F, EntityId, Args...>;
+concept ForEachSimple = std::invocable<F, Args...>;
+template <typename F, typename... Args>
+concept ForEachWithEntityId = std::invocable<F, EntityId, Args...>;
+
+template <typename F, typename... Args>
+concept ForEachFunctor =
+    ForEachSimple<F, Args...> || ForEachWithEntityId<F, Args...>;
+
+template <typename>
+inline constexpr bool always_false_v = std::false_type::value;
 
 }  // namespace bad

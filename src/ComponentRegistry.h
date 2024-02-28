@@ -34,7 +34,6 @@ private:
   template <Component T>
   Column& getOrCreateColumn();
 
-  // TODO (bgluzman): should not be static!
   static inline ComponentId kComponentIdCounter = 1;
   // XXX: std::unordered_map's semantics are important here! See similar note
   //  in Column.h.

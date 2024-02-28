@@ -32,7 +32,7 @@ public:
   [[nodiscard]] T *getComponent(EntityId entity);
 
   template <Component... Args>
-  void forEach(QueryFunctor<Args...> auto&& callback);
+  void forEach(ForEachFunctor<Args...> auto&& callback);
 
 private:
   std::unique_ptr<EntityRegistry> entities_ =
@@ -68,13 +68,15 @@ T *World::getComponent(EntityId entity) {
 }
 
 template <Component... Args>
-void World::forEach(QueryFunctor<Args...> auto&& callback) {
+void World::forEach(ForEachFunctor<Args...> auto&& callback) {
   for (EntityId id : components_->getQueryComponents<Args...>()) {
-    // TODO (bgluzman): create dedicated concept for this?
-    if constexpr (std::is_invocable_v<decltype(callback), EntityId, Args...>) {
+    if constexpr (ForEachSimple<decltype(callback), Args...>) {
+      callback(*components_->get<Args>(id)...);
+    } else if constexpr (ForEachWithEntityId<decltype(callback), Args...>) {
       callback(id, *components_->get<Args>(id)...);
     } else {
-      callback(*components_->get<Args>(id)...);
+      static_assert(always_false_v<decltype(callback)>,
+                    "Invalid callback signature");
     }
   }
 }
