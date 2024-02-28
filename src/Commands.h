@@ -21,32 +21,18 @@ public:
   void execute(gsl::not_null<World *> world);
 
 private:
-  enum class CommandType {
-    kSpawnEntity,
-    kDestroyEntity,
-    kRemoveComponent,
-    kSetComponent,
-  };
-
-  struct Command {
-    CommandType                  type;
-    std::function<void(World *)> deferred;
-  };
-
+  using Command = std::function<void(World *)>;
   std::vector<Command> commands_;
 };
 
 template <Component T>
 void Commands::setComponent(Entity entity, const T& value) {
-  commands_.push_back({
-      .type = CommandType::kSetComponent,
-      .deferred = [entity, value](World *) mutable { entity.set(value); },
-  });
+  commands_.push_back([entity, value](World *) mutable { entity.set(value); });
 }
 
 inline void Commands::execute(gsl::not_null<World *> world) {
   for (const Command& command : commands_) {
-    command.deferred(world.get());
+    command(world.get());
   }
   commands_.clear();
 }
