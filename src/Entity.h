@@ -11,12 +11,7 @@ namespace bad {
 class Entity {
 public:
   explicit Entity(EntityId id, gsl::not_null<ComponentRegistry *> components);
-  ~Entity() noexcept = default;
-  Entity(Entity&&) noexcept = default;
-  Entity& operator=(Entity&&) noexcept = default;
-  Entity(const Entity&) = delete;
-  Entity& operator=(const Entity&) = delete;
-
+  
   [[nodiscard]] EntityId getId() const noexcept { return id_; }
 
   template <Component T, typename... Ts>
