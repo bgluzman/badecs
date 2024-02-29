@@ -26,9 +26,6 @@ public:
 
   template <Component Arg>
   [[nodiscard]] decltype(auto) entitiesWithComponent() const;
-  // TODO (bgluzman): do we still need this?
-  template <Component Arg, Component... Args>
-  [[nodiscard]] std::set<EntityId> entitiesWithComponents() const;
 
 private:
   template <Component T>
@@ -108,28 +105,6 @@ decltype(auto) ComponentRegistry::entitiesWithComponent() const {
     return kEmptySet | std::views::keys;
   }
   return col->getEntityIds();
-}
-
-template <Component Arg, Component... Args>
-std::set<EntityId> ComponentRegistry::entitiesWithComponents() const {
-  const Column *argQueryColumn = getColumn<Arg>();
-  if (!argQueryColumn) {
-    // TODO (bgluzman): print a diagnostic warning?
-    return {};
-  }
-
-  if constexpr (sizeof...(Args) == 0) {
-    return argQueryColumn->getEntityIds() |
-           std::ranges::to<std::set<EntityId>>();
-  } else {
-    auto argQueryComponents = argQueryColumn->getEntityIds();
-    auto argsQueryComponents = entitiesWithComponents<Args...>();
-
-    std::set<EntityId> result;
-    std::ranges::set_intersection(argQueryComponents, argsQueryComponents,
-                                  std::inserter(result, result.begin()));
-    return result;
-  }
 }
 
 }  // namespace bad

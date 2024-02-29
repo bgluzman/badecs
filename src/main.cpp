@@ -118,29 +118,36 @@ int main(int /*argc*/, char * /*argv*/[]) {
     queryWorld.emplaceComponent<Ephemeral>(arrow);
 
     std::cout << "\n== manual queries  ==" << std::endl;
-    queryWorld.forEach<Position, Velocity>(
-        [](const auto& pos, const auto& vel) {
+    bad::QueryBuilder(&queryWorld)
+        .With<Position>()
+        .With<Velocity>()
+        .each([](auto pos, auto vel) {
           std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
         });
-    queryWorld.forEach<Position, Velocity>(
-        [](bad::EntityId entity, auto pos, auto vel) {
+    bad::QueryBuilder(&queryWorld)
+        .With<Position>()
+        .With<Velocity>()
+        .each([](bad::EntityId entity, const auto& pos, auto& vel) {
           std::cout << "entity=" << entity << " position=" << pos
                     << ", velocity=" << vel << std::endl;
+          vel.value.x += 1;
         });
-    queryWorld.forEach<Position>(
-        [](auto pos) { std::cout << "position=" << pos << std::endl; });
-    queryWorld.forEach<std::complex<double>>([](const auto& complex) {
-      std::cout << "complex=" << complex << std::endl;
-    });
+    bad::QueryBuilder(&queryWorld)
+        .With<std::complex<double>>()
+        .each([](const auto& complex) {
+          std::cout << "complex=" << complex << std::endl;
+        });
 
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
     bad::Commands commands;
-    queryWorld.forEach<Name, Ephemeral>([&commands](bad::EntityId entity,
-                                                    const auto&   name,
-                                                    const auto&   ephemeral) {
-      std::cout << "name=" << name << ", ephemeral=" << ephemeral << '\n';
-      commands.setComponent(entity, Tag{});
-    });
+    bad::QueryBuilder(&queryWorld)
+        .With<Name>()
+        .With<Ephemeral>()
+        .each([&commands](bad::EntityId entity, const auto& name,
+                          const auto& ephemeral) {
+          std::cout << "name=" << name << ", ephemeral=" << ephemeral << '\n';
+          commands.setComponent(entity, Tag{});
+        });
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
     commands.execute(&queryWorld);
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';

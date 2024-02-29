@@ -34,10 +34,7 @@ public:
   template <Component Arg>
   decltype(auto) entitiesWithComponent();
   decltype(auto) allEntities();
-
-  template <Component... Args>
-  void forEach(ForEachFunctor<Args...> auto&& callback);
-
+  
 private:
   std::unique_ptr<EntityRegistry> entities_ =
       std::make_unique<EntityRegistry>();
@@ -77,19 +74,5 @@ decltype(auto) World::entitiesWithComponent() {
 }
 
 inline decltype(auto) World::allEntities() { return entities_->entities(); }
-
-template <Component... Args>
-void World::forEach(ForEachFunctor<Args...> auto&& callback) {
-  for (EntityId id : components_->entitiesWithComponents<Args...>()) {
-    if constexpr (ForEachSimple<decltype(callback), Args...>) {
-      callback(*components_->get<Args>(id)...);
-    } else if constexpr (ForEachWithEntityId<decltype(callback), Args...>) {
-      callback(id, *components_->get<Args>(id)...);
-    } else {
-      static_assert(always_false_v<decltype(callback)>,
-                    "Invalid callback signature");
-    }
-  }
-}
 
 }  // namespace bad

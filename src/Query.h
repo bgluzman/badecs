@@ -20,11 +20,11 @@ public:
   }
 
   template <Component Arg>
-  QueryBuilder<Arg, Args...> With();
+  QueryBuilder<Args..., Arg> With();
   template <Component Arg>
   QueryBuilder<Args...> Without();
 
-  void each(ForEachFunctor<Args...> auto&& functor) const {
+  void each(ForEachFunctor<Args...> auto&& functor) {
     for (EntityId id : entities_) {
       if constexpr (ForEachSimple<decltype(functor), Args...>) {
         functor(*world_->getComponent<Args>(id)...);
@@ -44,11 +44,11 @@ private:
 
 template <Component... Args>
 template <Component Arg>
-QueryBuilder<Arg, Args...> QueryBuilder<Args...>::With() {
+QueryBuilder<Args..., Arg> QueryBuilder<Args...>::With() {
   std::set<EntityId> result;
   std::ranges::set_intersection(entities_, world_->entitiesWithComponent<Arg>(),
                                 std::inserter(result, result.begin()));
-  return QueryBuilder<Arg, Args...>(world_, std::move(result));
+  return QueryBuilder<Args..., Arg>(world_, std::move(result));
 }
 
 template <Component... Args>
