@@ -118,13 +118,13 @@ int main(int /*argc*/, char * /*argv*/[]) {
     queryWorld.emplaceComponent<Ephemeral>(arrow);
 
     std::cout << "\n== manual queries  ==" << std::endl;
-    bad::QueryBuilder(&queryWorld)
+    bad::Query(&queryWorld)
         .With<Position>()
         .With<Velocity>()
         .each([](auto pos, auto vel) {
           std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
         });
-    bad::QueryBuilder(&queryWorld)
+    bad::Query(&queryWorld)
         .With<Position>()
         .With<Velocity>()
         .each([](bad::EntityId entity, const auto& pos, auto& vel) {
@@ -132,7 +132,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
                     << ", velocity=" << vel << std::endl;
           vel.value.x += 1;
         });
-    bad::QueryBuilder(&queryWorld)
+    bad::Query(&queryWorld)
         .With<std::complex<double>>()
         .each([](const auto& complex) {
           std::cout << "complex=" << complex << std::endl;
@@ -140,7 +140,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
     bad::Commands commands;
-    bad::QueryBuilder(&queryWorld)
+    bad::Query(&queryWorld)
         .With<Name>()
         .With<Ephemeral>()
         .each([&commands](bad::EntityId entity, const auto& name,
@@ -152,7 +152,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     commands.execute(&queryWorld);
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
 
-    bad::QueryBuilder(&queryWorld)
+    bad::Query(&queryWorld)
         .With<Name>()
         .With<Position>()
         .Without<Velocity>()

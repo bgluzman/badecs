@@ -7,11 +7,10 @@
 namespace bad {
 
 template <Component... Args>
-class QueryBuilder {
+class Query {
 
 public:
-  explicit QueryBuilder(gsl::not_null<World *> world,
-                        std::set<EntityId>     entities = {})
+  explicit Query(gsl::not_null<World *> world, std::set<EntityId> entities = {})
       : world_(world), entities_(std::move(entities)) {
     if (sizeof...(Args) == 0) {
       // When initially constructed, we query everything by default.
@@ -20,20 +19,20 @@ public:
   }
 
   template <Component Arg>
-  QueryBuilder<Args..., Arg> With() {
+  Query<Args..., Arg> With() {
     std::set<EntityId> result;
     std::ranges::set_intersection(entities_,
                                   world_->entitiesWithComponent<Arg>(),
                                   std::inserter(result, result.begin()));
-    return QueryBuilder<Args..., Arg>(world_, std::move(result));
+    return Query<Args..., Arg>(world_, std::move(result));
   }
 
   template <Component Arg>
-  QueryBuilder<Args...> Without() {
+  Query<Args...> Without() {
     std::set<EntityId> result;
     std::ranges::set_difference(entities_, world_->entitiesWithComponent<Arg>(),
                                 std::inserter(result, result.begin()));
-    return QueryBuilder<Args...>(world_, std::move(result));
+    return Query<Args...>(world_, std::move(result));
   }
 
   void each(ForEachFunctor<Args...> auto&& functor) {
