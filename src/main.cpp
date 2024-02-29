@@ -1,4 +1,5 @@
 #include "Commands.h"
+#include "Query.h"
 #include "World.h"
 
 #include <cmath>
@@ -143,6 +144,14 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
     commands.execute(&queryWorld);
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
+
+    bad::QueryBuilder(&queryWorld)
+        .With<Name>()
+        .With<Position>()
+        .Without<Velocity>()
+        .each([](const auto& name, const auto& pos) {
+          std::cout << "name=" << name << ", position=" << pos << '\n';
+        });
   }
 
   return 0;

@@ -31,6 +31,12 @@ public:
   template <Component T>
   [[nodiscard]] T *getComponent(EntityId entity);
 
+  [[nodiscard]] std::set<EntityId> entities();
+  template <Component Arg>
+  std::set<EntityId> entitiesWithComponent();
+  template <Component Arg>
+  std::set<EntityId> entitiesWithoutComponent();
+
   template <Component... Args>
   void forEach(ForEachFunctor<Args...> auto&& callback);
 
@@ -65,6 +71,23 @@ bool World::hasComponent(EntityId entity) const noexcept {
 template <Component T>
 T *World::getComponent(EntityId entity) {
   return components_->get<T>(entity);
+}
+
+inline std::set<EntityId> World::entities() {
+  return entities_->entities() | std::ranges::to<std::set<EntityId>>();
+}
+
+template <Component Arg>
+std::set<EntityId> World::entitiesWithComponent() {
+  return components_->entitiesWithComponent<Arg>();
+}
+
+template <Component Arg>
+std::set<EntityId> World::entitiesWithoutComponent() {
+  std::set<EntityId> result;
+  std::ranges::set_difference(
+      entities_->entities(), components_->entitiesWithComponent<Arg>(), result);
+  return result;
 }
 
 template <Component... Args>

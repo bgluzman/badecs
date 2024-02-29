@@ -3,6 +3,7 @@
 #include "Common.h"
 
 #include <optional>
+#include <ranges>
 #include <set>
 
 namespace bad {
@@ -12,7 +13,7 @@ public:
   EntityId           add();
   [[nodiscard]] bool has(EntityId id) const noexcept;
 
-  [[nodiscard]] std::set<EntityId> entities() const;
+  [[nodiscard]] decltype(auto) entities() const;
 
 private:
   EntityId           entity_counter_ = 1;
@@ -28,6 +29,8 @@ inline bool EntityRegistry::has(EntityId id) const noexcept {
   return entities_.contains(id);
 }
 
-inline std::set<EntityId> EntityRegistry::entities() const { return entities_; }
+inline decltype(auto) EntityRegistry::entities() const {
+  return std::ranges::ref_view(entities_);
+}
 
 }  // namespace bad

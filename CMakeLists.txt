@@ -27,5 +27,7 @@ add_executable(badecs
         src/EntityRegistry.h
         src/Commands.cpp
         src/Commands.h
+        src/Query.cpp
+        src/Query.h
 )
 target_link_libraries(badecs PRIVATE Microsoft.GSL::GSL)

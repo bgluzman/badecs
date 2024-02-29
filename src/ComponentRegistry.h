@@ -23,6 +23,9 @@ public:
   template <Component T>
   [[nodiscard]] T *get(EntityId entityId);
 
+  template <Component Arg>
+  [[nodiscard]] std::set<EntityId> entitiesWithComponent() const;
+  // TODO (bgluzman): do we still need this?
   template <Component Arg, Component... Args>
   [[nodiscard]] std::set<EntityId> entitiesWithComponents() const;
 
@@ -94,6 +97,13 @@ T *ComponentRegistry::get(EntityId entityId) {
     return col->get<T>(entityId);
   }
   return nullptr;
+}
+
+template <Component Arg>
+std::set<EntityId> ComponentRegistry::entitiesWithComponent() const {
+  const Column *col = getColumn<Arg>();
+  return col ? col->getEntityIds() | std::ranges::to<std::set<EntityId>>()
+             : std::set<EntityId>{};
 }
 
 template <Component Arg, Component... Args>
