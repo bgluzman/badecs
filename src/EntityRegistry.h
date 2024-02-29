@@ -30,6 +30,7 @@ inline bool EntityRegistry::has(EntityId id) const noexcept {
 }
 
 inline decltype(auto) EntityRegistry::entities() const {
+  // TODO (bgluzman): use keys_view when we switch to using a map
   return std::ranges::ref_view(entities_);
 }
 

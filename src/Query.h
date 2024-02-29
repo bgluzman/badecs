@@ -15,7 +15,7 @@ public:
       : world_(world), entities_(std::move(entities)) {
     if (sizeof...(Args) == 0) {
       // When initially constructed, we query everything by default.
-      entities_ = world_->entities();
+      entities_ = world_->allEntities() | std::ranges::to<std::set<EntityId>>();
     }
   }
 

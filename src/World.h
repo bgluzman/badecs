@@ -31,11 +31,9 @@ public:
   template <Component T>
   [[nodiscard]] T *getComponent(EntityId entity);
 
-  [[nodiscard]] std::set<EntityId> entities();
   template <Component Arg>
-  std::set<EntityId> entitiesWithComponent();
-  template <Component Arg>
-  std::set<EntityId> entitiesWithoutComponent();
+  decltype(auto) entitiesWithComponent();
+  decltype(auto) allEntities();
 
   template <Component... Args>
   void forEach(ForEachFunctor<Args...> auto&& callback);
@@ -73,22 +71,12 @@ T *World::getComponent(EntityId entity) {
   return components_->get<T>(entity);
 }
 
-inline std::set<EntityId> World::entities() {
-  return entities_->entities() | std::ranges::to<std::set<EntityId>>();
-}
-
 template <Component Arg>
-std::set<EntityId> World::entitiesWithComponent() {
+decltype(auto) World::entitiesWithComponent() {
   return components_->entitiesWithComponent<Arg>();
 }
 
-template <Component Arg>
-std::set<EntityId> World::entitiesWithoutComponent() {
-  std::set<EntityId> result;
-  std::ranges::set_difference(
-      entities_->entities(), components_->entitiesWithComponent<Arg>(), result);
-  return result;
-}
+inline decltype(auto) World::allEntities() { return entities_->entities(); }
 
 template <Component... Args>
 void World::forEach(ForEachFunctor<Args...> auto&& callback) {

@@ -4,6 +4,7 @@
 
 #include <any>
 #include <gsl/gsl>
+#include <ranges>
 #include <set>
 #include <unordered_map>
 
@@ -24,7 +25,7 @@ public:
   [[nodiscard]] T *get(EntityId entityId);
 
   template <Component Arg>
-  [[nodiscard]] std::set<EntityId> entitiesWithComponent() const;
+  [[nodiscard]] decltype(auto) entitiesWithComponent() const;
   // TODO (bgluzman): do we still need this?
   template <Component Arg, Component... Args>
   [[nodiscard]] std::set<EntityId> entitiesWithComponents() const;
@@ -100,10 +101,13 @@ T *ComponentRegistry::get(EntityId entityId) {
 }
 
 template <Component Arg>
-std::set<EntityId> ComponentRegistry::entitiesWithComponent() const {
+decltype(auto) ComponentRegistry::entitiesWithComponent() const {
   const Column *col = getColumn<Arg>();
-  return col ? col->getEntityIds() | std::ranges::to<std::set<EntityId>>()
-             : std::set<EntityId>{};
+  if (!col) {
+    const static std::map<EntityId, std::any> kEmptySet;
+    return kEmptySet | std::views::keys;
+  }
+  return col->getEntityIds();
 }
 
 template <Component Arg, Component... Args>
