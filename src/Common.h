@@ -13,9 +13,9 @@ template <typename T>
 concept Component = std::is_copy_constructible_v<T>;
 
 template <typename F, typename... Args>
-concept ForEachSimple = std::invocable<F, Args...>;
+concept ForEachSimple = std::invocable<F, Args&...>;
 template <typename F, typename... Args>
-concept ForEachWithEntityId = std::invocable<F, EntityId, Args...>;
+concept ForEachWithEntityId = std::invocable<F, EntityId, Args&...>;
 
 template <typename F, typename... Args>
 concept ForEachFunctor =
