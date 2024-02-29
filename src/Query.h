@@ -20,9 +20,21 @@ public:
   }
 
   template <Component Arg>
-  QueryBuilder<Args..., Arg> With();
+  QueryBuilder<Args..., Arg> With() {
+    std::set<EntityId> result;
+    std::ranges::set_intersection(entities_,
+                                  world_->entitiesWithComponent<Arg>(),
+                                  std::inserter(result, result.begin()));
+    return QueryBuilder<Args..., Arg>(world_, std::move(result));
+  }
+
   template <Component Arg>
-  QueryBuilder<Args...> Without();
+  QueryBuilder<Args...> Without() {
+    std::set<EntityId> result;
+    std::ranges::set_difference(entities_, world_->entitiesWithComponent<Arg>(),
+                                std::inserter(result, result.begin()));
+    return QueryBuilder<Args...>(world_, std::move(result));
+  }
 
   void each(ForEachFunctor<Args...> auto&& functor) {
     for (EntityId id : entities_) {
@@ -41,23 +53,5 @@ private:
   std::set<EntityId>     entities_ = {};
   gsl::not_null<World *> world_;
 };
-
-template <Component... Args>
-template <Component Arg>
-QueryBuilder<Args..., Arg> QueryBuilder<Args...>::With() {
-  std::set<EntityId> result;
-  std::ranges::set_intersection(entities_, world_->entitiesWithComponent<Arg>(),
-                                std::inserter(result, result.begin()));
-  return QueryBuilder<Args..., Arg>(world_, std::move(result));
-}
-
-template <Component... Args>
-template <Component Arg>
-QueryBuilder<Args...> QueryBuilder<Args...>::Without() {
-  std::set<EntityId> result;
-  std::ranges::set_difference(entities_, world_->entitiesWithComponent<Arg>(),
-                              std::inserter(result, result.begin()));
-  return QueryBuilder<Args...>(world_, std::move(result));
-}
 
 }  // namespace bad
