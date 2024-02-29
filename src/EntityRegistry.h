@@ -3,7 +3,7 @@
 #include "Common.h"
 
 #include <optional>
-#include <unordered_set>
+#include <set>
 
 namespace bad {
 
@@ -12,9 +12,11 @@ public:
   EntityId           add();
   [[nodiscard]] bool has(EntityId id) const noexcept;
 
+  [[nodiscard]] std::set<EntityId> entities() const;
+
 private:
-  EntityId                     entity_counter_ = 1;
-  std::unordered_set<EntityId> entities_ = {};
+  EntityId           entity_counter_ = 1;
+  std::set<EntityId> entities_ = {};
 };
 
 inline EntityId EntityRegistry::add() {
@@ -25,5 +27,7 @@ inline EntityId EntityRegistry::add() {
 inline bool EntityRegistry::has(EntityId id) const noexcept {
   return entities_.contains(id);
 }
+
+inline std::set<EntityId> EntityRegistry::entities() const { return entities_; }
 
 }  // namespace bad

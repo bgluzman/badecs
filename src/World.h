@@ -69,7 +69,7 @@ T *World::getComponent(EntityId entity) {
 
 template <Component... Args>
 void World::forEach(ForEachFunctor<Args...> auto&& callback) {
-  for (EntityId id : components_->getQueryComponents<Args...>()) {
+  for (EntityId id : components_->entitiesWithComponents<Args...>()) {
     if constexpr (ForEachSimple<decltype(callback), Args...>) {
       callback(*components_->get<Args>(id)...);
     } else if constexpr (ForEachWithEntityId<decltype(callback), Args...>) {

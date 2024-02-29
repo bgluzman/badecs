@@ -24,7 +24,7 @@ public:
   [[nodiscard]] T *get(EntityId entityId);
 
   template <Component Arg, Component... Args>
-  [[nodiscard]] std::set<EntityId> getQueryComponents() const;
+  [[nodiscard]] std::set<EntityId> entitiesWithComponents() const;
 
 private:
   template <Component T>
@@ -97,7 +97,7 @@ T *ComponentRegistry::get(EntityId entityId) {
 }
 
 template <Component Arg, Component... Args>
-std::set<EntityId> ComponentRegistry::getQueryComponents() const {
+std::set<EntityId> ComponentRegistry::entitiesWithComponents() const {
   const Column *argQueryColumn = getColumn<Arg>();
   if (!argQueryColumn) {
     // TODO (bgluzman): print a diagnostic warning?
@@ -109,7 +109,7 @@ std::set<EntityId> ComponentRegistry::getQueryComponents() const {
            std::ranges::to<std::set<EntityId>>();
   } else {
     auto argQueryComponents = argQueryColumn->getEntityIds();
-    auto argsQueryComponents = getQueryComponents<Args...>();
+    auto argsQueryComponents = entitiesWithComponents<Args...>();
 
     std::set<EntityId> result;
     std::ranges::set_intersection(argQueryComponents, argsQueryComponents,
