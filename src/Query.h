@@ -15,7 +15,7 @@ class Query {
 
 public:
   template <Component Arg, ArgOrder order = ArgOrder::Append>
-  auto with() {
+  auto with() && {
     std::set<EntityId> result;
     std::ranges::set_intersection(entities_,
                                   world_->entitiesWithComponent<Arg>(),
@@ -30,7 +30,7 @@ public:
   }
 
   template <Component Arg>
-  Query<Args...> filter() {
+  Query<Args...> filter() && {
     std::set<EntityId> result;
     std::ranges::set_difference(entities_, world_->entitiesWithComponent<Arg>(),
                                 std::inserter(result, result.begin()));
