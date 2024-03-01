@@ -119,13 +119,13 @@ int main(int /*argc*/, char * /*argv*/[]) {
     queryWorld.emplaceComponent<Ephemeral>(arrow);
 
     std::cout << "\n== manual queries  ==" << std::endl;
-    bad::Query(&queryWorld)
+    bad::query(&queryWorld)
         .With<Position>()
         .With<Velocity>()
         .each([](auto pos, auto vel) {
           std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
         });
-    bad::Query(&queryWorld)
+    bad::query(&queryWorld)
         .With<Position>()
         .With<Velocity>()
         .each([](bad::EntityId entity, const auto& pos, auto& vel) {
@@ -133,7 +133,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
                     << ", velocity=" << vel << std::endl;
           vel.value.x += 1;
         });
-    bad::Query(&queryWorld)
+    bad::query(&queryWorld)
         .With<std::complex<double>>()
         .each([](const auto& complex) {
           std::cout << "complex=" << complex << std::endl;
@@ -141,7 +141,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
     bad::Commands commands;
-    bad::Query(&queryWorld)
+    bad::query(&queryWorld)
         .With<Name>()
         .With<Ephemeral>()
         .each([&commands](bad::EntityId entity, const auto& name,
@@ -156,7 +156,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cout << "=== removeComponent test === \n";
     std::cout << "enemy:hasVelocity="
               << queryWorld.hasComponent<Velocity>(enemy) << '\n';
-    bad::Query(&queryWorld)
+    bad::query(&queryWorld)
         .With<Name>()
         .With<Position>()
         .Without<Velocity>()
@@ -166,7 +166,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     assert(queryWorld.removeComponent<Velocity>(enemy));
     std::cout << "enemy:hasVelocity="
               << queryWorld.hasComponent<Velocity>(enemy) << '\n';
-    bad::Query(&queryWorld)
+    bad::query(&queryWorld)
         .With<Name>()
         .With<Position>()
         .Without<Velocity>()
@@ -178,12 +178,12 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
     std::cout << "=== destroy test === \n";
     std::cout << "has:arrow=" << queryWorld.has(arrow) << '\n';
-    bad::Query(&queryWorld).With<Name>().each([](const auto& name) {
+    bad::query(&queryWorld).With<Name>().each([](const auto& name) {
       std::cout << "name=" << name << '\n';
     });
     std::cout << "destroy:arrow=" << queryWorld.destroy(arrow) << '\n';
     std::cout << "has:arrow=" << queryWorld.has(arrow) << '\n';
-    bad::Query(&queryWorld).With<Name>().each([](const auto& name) {
+    bad::query(&queryWorld).With<Name>().each([](const auto& name) {
       std::cout << "name=" << name << '\n';
     });
     std::cout << "has:arrow=" << queryWorld.has(arrow) << '\n';
