@@ -55,7 +55,7 @@ public:
         }
       } else if constexpr (std::is_same_v<Arg0, Commands>) {
         if constexpr (std::is_same_v<Arg1, Commands>) {
-          functor(commands, id * world_->getComponent<Args>(id)...);
+          functor(commands, id, *world_->getComponent<Args>(id)...);
         } else {
           functor(commands, *world_->getComponent<Args>(id)...);
         }
