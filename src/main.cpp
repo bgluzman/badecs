@@ -2,6 +2,7 @@
 #include "Query.h"
 #include "World.h"
 
+#include <cassert>
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -152,6 +153,9 @@ int main(int /*argc*/, char * /*argv*/[]) {
     commands.execute(&queryWorld);
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
 
+    std::cout << "=== removeComponent test === \n";
+    std::cout << "enemy:hasVelocity="
+              << queryWorld.hasComponent<Velocity>(enemy) << '\n';
     bad::Query(&queryWorld)
         .With<Name>()
         .With<Position>()
@@ -159,6 +163,30 @@ int main(int /*argc*/, char * /*argv*/[]) {
         .each([](const auto& name, const auto& pos) {
           std::cout << "name=" << name << ", position=" << pos << '\n';
         });
+    assert(queryWorld.removeComponent<Velocity>(enemy));
+    std::cout << "enemy:hasVelocity="
+              << queryWorld.hasComponent<Velocity>(enemy) << '\n';
+    bad::Query(&queryWorld)
+        .With<Name>()
+        .With<Position>()
+        .Without<Velocity>()
+        .each([](const auto& name, const auto& pos) {
+          std::cout << "name=" << name << ", position=" << pos << '\n';
+        });
+    std::cout << "enemy:hasVelocity="
+              << queryWorld.hasComponent<Velocity>(enemy) << '\n';
+
+    std::cout << "=== destroy test === \n";
+    std::cout << "has:arrow=" << queryWorld.has(arrow) << '\n';
+    bad::Query(&queryWorld).With<Name>().each([](const auto& name) {
+      std::cout << "name=" << name << '\n';
+    });
+    std::cout << "destroy:arrow=" << queryWorld.destroy(arrow) << '\n';
+    std::cout << "has:arrow=" << queryWorld.has(arrow) << '\n';
+    bad::Query(&queryWorld).With<Name>().each([](const auto& name) {
+      std::cout << "name=" << name << '\n';
+    });
+    std::cout << "has:arrow=" << queryWorld.has(arrow) << '\n';
   }
 
   return 0;

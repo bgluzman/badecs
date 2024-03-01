@@ -16,8 +16,8 @@ public:
   template <Component T, typename... Ts>
   void emplace(EntityId entityId, Ts&&...args);
   template <Component T>
-  void set(EntityId entityId, const T& value);
-  template <Component T>
+  void               set(EntityId entityId, const T& value);
+  bool               remove(EntityId entityId);
   [[nodiscard]] bool has(EntityId entityId) const noexcept;
   template <Component T>
   [[nodiscard]] T *get(EntityId entityId);
@@ -43,9 +43,12 @@ void Column::set(EntityId entityId, const T& value) {
   components_[entityId] = value;
 }
 
-template <Component T>
-bool Column::has(EntityId entityId) const noexcept {
+inline bool Column::has(EntityId entityId) const noexcept {
   return components_.contains(entityId);
+}
+
+inline bool Column::remove(EntityId entityId) {
+  return components_.erase(entityId) > 0;
 }
 
 template <Component T>

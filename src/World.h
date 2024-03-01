@@ -20,12 +20,15 @@ namespace bad {
 class World {
 public:
   EntityId           create();
+  bool               destroy(EntityId id);
   [[nodiscard]] bool has(EntityId id) const noexcept;
 
   template <Component T, typename... Ts>
   void emplaceComponent(EntityId entity, Ts&&...args);
   template <Component T>
   void setComponent(EntityId entity, const T& value);
+  template <Component T>
+  bool removeComponent(EntityId entity);
   template <Component T>
   [[nodiscard]] bool hasComponent(EntityId entity) const noexcept;
   template <Component T>
@@ -34,8 +37,10 @@ public:
   template <Component Arg>
   decltype(auto) entitiesWithComponent();
   decltype(auto) allEntities();
-  
+
 private:
+  bool removeComponent(EntityId entity, ComponentId component);
+
   std::unique_ptr<EntityRegistry> entities_ =
       std::make_unique<EntityRegistry>();
   std::unique_ptr<ComponentRegistry> components_ =
@@ -44,6 +49,16 @@ private:
 
 inline EntityId World::create() { return entities_->add(); }
 
+inline bool World::destroy(EntityId id) {
+  if (auto components = entities_->remove(id); components.has_value()) {
+    for (ComponentId componentId : *components) {
+      components_->remove(id, componentId);
+    }
+    return true;
+  }
+  return false;
+}
+
 inline bool World::has(EntityId id) const noexcept {
   return entities_->has(id);
 }
@@ -51,11 +66,23 @@ inline bool World::has(EntityId id) const noexcept {
 template <Component T, typename... Ts>
 void World::emplaceComponent(EntityId entity, Ts&&...args) {
   components_->emplace<T>(entity, std::forward<Ts>(args)...);
+  entities_->addComponent(entity, components_->getComponentId<T>());
 }
 
 template <Component T>
 void World::setComponent(EntityId entity, const T& value) {
   components_->set(entity, value);
+  entities_->addComponent(entity, components_->getComponentId<T>());
+}
+
+template <Component T>
+bool World::removeComponent(EntityId entity) {
+  return removeComponent(entity, components_->getComponentId<T>());
+}
+
+inline bool World::removeComponent(EntityId entity, ComponentId component) {
+  entities_->removeComponent(entity, component);
+  return components_->remove(entity, component);
 }
 
 template <Component T>

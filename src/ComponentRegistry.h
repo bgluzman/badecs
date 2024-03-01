@@ -20,7 +20,12 @@ public:
   template <Component T>
   void set(EntityId entityId, const T& value);
   template <Component T>
+  bool remove(EntityId entity);
+  bool remove(EntityId entity, ComponentId component);
+  template <Component T>
   [[nodiscard]] bool has(EntityId entityId) const noexcept;
+  [[nodiscard]] bool has(EntityId    entityId,
+                         ComponentId component) const noexcept;
   template <Component T>
   [[nodiscard]] T *get(EntityId entityId);
 
@@ -30,8 +35,10 @@ public:
 private:
   template <Component T>
   [[nodiscard]] Column *getColumn();
+  [[nodiscard]] Column *getColumn(ComponentId id);
   template <Component T>
   [[nodiscard]] const Column *getColumn() const;
+  [[nodiscard]] const Column *getColumn(ComponentId id) const;
   template <Component T>
   Column& getOrCreateColumn();
 
@@ -53,10 +60,18 @@ Column *ComponentRegistry::getColumn() {
       const_cast<const ComponentRegistry *>(this)->getColumn<T>());
 }
 
+inline Column *ComponentRegistry::getColumn(ComponentId id) {
+  return const_cast<Column *>(
+      const_cast<const ComponentRegistry *>(this)->getColumn(id));
+}
+
 template <Component T>
 const Column *ComponentRegistry::getColumn() const {
-  ComponentId componentId = getComponentId<T>();
-  if (auto it = columns_.find(componentId); it != columns_.end()) {
+  return getColumn(getComponentId<T>());
+}
+
+inline const Column *ComponentRegistry::getColumn(ComponentId id) const {
+  if (auto it = columns_.find(id); it != columns_.end()) {
     return &it->second;
   }
   return nullptr;
@@ -78,15 +93,32 @@ void ComponentRegistry::emplace(EntityId entityId, Ts&&...args) {
 }
 
 template <Component T>
-bool ComponentRegistry::has(EntityId entityId) const noexcept {
-  const Column *col = getColumn<T>();
-  return col && col->has<T>(entityId);
-}
-
-template <Component T>
 void ComponentRegistry::set(EntityId entityId, const T& value) {
   Column& col = getOrCreateColumn<T>();
   col.set(entityId, value);
+}
+
+template <Component T>
+bool ComponentRegistry::remove(EntityId entity) {
+  return remove(entity, getComponentId<T>());
+}
+
+inline bool ComponentRegistry::remove(EntityId entity, ComponentId component) {
+  if (Column *col = getColumn(component); col) {
+    return col->remove(entity);
+  }
+  return false;
+}
+
+template <Component T>
+bool ComponentRegistry::has(EntityId entity) const noexcept {
+  return has(entity, getComponentId<T>());
+}
+
+inline bool ComponentRegistry::has(EntityId    entity,
+                                   ComponentId component) const noexcept {
+  const Column *col = getColumn(component);
+  return col && col->has(entity);
 }
 
 template <Component T>
