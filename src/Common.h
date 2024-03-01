@@ -23,9 +23,8 @@ template <typename F, typename... Args>
 concept EachFunctorEntityCommands =
     std::invocable<F, EntityId, Commands&, Args&...>;
 template <typename F, typename... Args>
-concept EachFunctor =
-    EachFunctorSimple<F, Args...> || EachFunctorEntity<F, Args...> ||
-    EachFunctorCommands<F, Args...> || EachFunctorEntityCommands<F, Args...>;
+concept EachFunctorCommandsEntity =
+    std::invocable<F, Commands&, EntityId, Args&...>;
 
 enum class ArgOrder { Prepend, Append };
 

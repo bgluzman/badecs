@@ -37,27 +37,37 @@ public:
     return Query<Args...>(world_, std::move(result));
   }
 
-  void each(EachFunctor<Args...> auto&& functor) {
-    using Functor = decltype(functor);
-    static_assert(!std::invocable<Commands&, EntityId, Args...>,
-                  "'Commands' and 'EntityId' arguments in wrong order for "
-                  "functor passed to 'Query::each'.");
-
+  void each(EachFunctorSimple<Args...> auto&& functor) {
+    for (EntityId id : entities_) {
+      functor(*world_->getComponent<Args>(id)...);
+    }
+  }
+  void eachE(EachFunctorEntity<Args...> auto&& functor) {
+    for (EntityId id : entities_) {
+      functor(id, *world_->getComponent<Args>(id)...);
+    }
+  }
+  void eachC(EachFunctorCommands<Args...> auto&& functor) {
     Commands commands;
     for (EntityId id : entities_) {
-      if constexpr (EachFunctorSimple<Functor, Args...>) {
-        functor(*world_->getComponent<Args>(id)...);
-      } else if constexpr (EachFunctorEntity<Functor, Args...>) {
-        functor(id, *world_->getComponent<Args>(id)...);
-      } else if constexpr (EachFunctorCommands<Functor, Args...>) {
-        // TODO (bgluzman): Commands needs to be non-copyable...
-        functor(commands, *world_->getComponent<Args>(id)...);
-      } else if constexpr (EachFunctorEntityCommands<Functor, Args...>) {
-        // TODO (bgluzman): Commands needs to be non-copyable...
-        functor(id, commands, *world_->getComponent<Args>(id)...);
-      } else {
-        static_assert(always_false_v<Functor>, "Invalid functor type.");
-      }
+      // TODO (bgluzman): Commands needs to be non-copyable...
+      functor(commands, *world_->getComponent<Args>(id)...);
+    }
+    commands.execute(world_);
+  }
+  void eachEC(EachFunctorEntityCommands<Args...> auto&& functor) {
+    Commands commands;
+    for (EntityId id : entities_) {
+      // TODO (bgluzman): Commands needs to be non-copyable...
+      functor(id, commands, *world_->getComponent<Args>(id)...);
+    }
+    commands.execute(world_);
+  }
+  void eachCE(EachFunctorCommandsEntity<Args...> auto&& functor) {
+    Commands commands;
+    for (EntityId id : entities_) {
+      // TODO (bgluzman): Commands needs to be non-copyable...
+      functor(commands, id, *world_->getComponent<Args>(id)...);
     }
     commands.execute(world_);
   }

@@ -130,7 +130,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     bad::query(&queryWorld)
         .with<Position>()
         .with<Velocity>()
-        .each([](bad::EntityId entity, const auto& pos, auto& vel) {
+        .eachE([](bad::EntityId entity, const auto& pos, auto& vel) {
           std::cout << "entity=" << entity << " position=" << pos
                     << ", velocity=" << vel << std::endl;
           vel.value.x += 1;
@@ -161,8 +161,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
     bad::query(&queryWorld)
         .with<Name>()
         .with<Ephemeral>()
-        .each([&commands](bad::EntityId entity, const auto& name,
-                          const auto& ephemeral) {
+        .eachE([&commands](bad::EntityId entity, const auto& name,
+                           const auto& ephemeral) {
           std::cout << "name=" << name << ", ephemeral=" << ephemeral << '\n';
           commands.setComponent(entity, Tag{});
         });
@@ -203,7 +203,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     });
     std::cout << "has:arrow=" << queryWorld.has(arrow) << '\n';
 
-    bad::query(&queryWorld).each([](auto entity) {
+    bad::query(&queryWorld).eachE([](auto entity) {
       std::cout << "entity=" << entity << '\n';
     });
   }
