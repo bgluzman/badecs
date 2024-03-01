@@ -18,7 +18,7 @@ concept EachFunctorSimple = std::invocable<F, Args&...>;
 template <typename F, typename... Args>
 concept EachFunctorEntity = std::invocable<F, EntityId, Args&...>;
 template <typename F, typename... Args>
-concept EachFunctorCommands = std::invocable<F, EntityId, Commands&, Args&...>;
+concept EachFunctorCommands = std::invocable<F, Commands&, Args&...>;
 template <typename F, typename... Args>
 concept EachFunctorEntityCommands =
     std::invocable<F, EntityId, Commands&, Args&...>;
