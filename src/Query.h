@@ -49,6 +49,13 @@ public:
   }
 
 private:
+  // Note this could be made more efficient with a partial specialization where
+  //   template <Component Arg>
+  //   class Query<Arg> {...};
+  // only has a constructor which initializes its entities_ to
+  // world_->entitiesWithComponent<Arg>() and ONLY has the with() and each()
+  // member functions. However, that complicates the implementation quite a bit,
+  // so we stick with this approach for now.
   explicit Query(gsl::not_null<World *> world, std::set<EntityId> entities = {})
       : world_(world), entities_(std::move(entities)) {
     if (sizeof...(Args) == 0) {
