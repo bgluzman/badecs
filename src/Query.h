@@ -14,7 +14,7 @@ class Query {
 
 public:
   template <Component Arg>
-  Query<Args..., Arg> With() {
+  Query<Args..., Arg> with() {
     std::set<EntityId> result;
     std::ranges::set_intersection(entities_,
                                   world_->entitiesWithComponent<Arg>(),
@@ -23,7 +23,7 @@ public:
   }
 
   template <Component Arg>
-  Query<Arg, Args...> WithPrepend() {
+  Query<Arg, Args...> withPrepend() {
     std::set<EntityId> result;
     std::ranges::set_intersection(entities_,
                                   world_->entitiesWithComponent<Arg>(),
@@ -32,7 +32,7 @@ public:
   }
 
   template <Component Arg>
-  Query<Args...> Without() {
+  Query<Args...> without() {
     std::set<EntityId> result;
     std::ranges::set_difference(entities_, world_->entitiesWithComponent<Arg>(),
                                 std::inserter(result, result.begin()));
@@ -70,9 +70,9 @@ inline Query<> query(gsl::not_null<World *> world) { return Query<>(world); }
 template <Component Arg, Component... Args>
 Query<Arg, Args...> query(gsl::not_null<World *> world) {
   if constexpr (sizeof...(Args) == 0) {
-    return query(world).With<Arg>();
+    return query(world).with<Arg>();
   } else {
-    return query<Args...>(world).template WithPrepend<Arg>();
+    return query<Args...>(world).template withPrepend<Arg>();
   }
 }
 

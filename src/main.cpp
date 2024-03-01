@@ -120,23 +120,23 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
     std::cout << "\n== manual queries  ==" << std::endl;
 
-    // syntax using .With()
+    // syntax using .with()
     bad::query(&queryWorld)
-        .With<Position>()
-        .With<Velocity>()
+        .with<Position>()
+        .with<Velocity>()
         .each([](auto pos, auto vel) {
           std::cout << "position=" << pos << ", velocity=" << vel << std::endl;
         });
     bad::query(&queryWorld)
-        .With<Position>()
-        .With<Velocity>()
+        .with<Position>()
+        .with<Velocity>()
         .each([](bad::EntityId entity, const auto& pos, auto& vel) {
           std::cout << "entity=" << entity << " position=" << pos
                     << ", velocity=" << vel << std::endl;
           vel.value.x += 1;
         });
     bad::query(&queryWorld)
-        .With<std::complex<double>>()
+        .with<std::complex<double>>()
         .each([](const auto& complex) {
           std::cout << "complex=" << complex << std::endl;
         });
@@ -159,8 +159,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
     bad::Commands commands;
     bad::query(&queryWorld)
-        .With<Name>()
-        .With<Ephemeral>()
+        .with<Name>()
+        .with<Ephemeral>()
         .each([&commands](bad::EntityId entity, const auto& name,
                           const auto& ephemeral) {
           std::cout << "name=" << name << ", ephemeral=" << ephemeral << '\n';
@@ -174,7 +174,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cout << "enemy:hasVelocity="
               << queryWorld.hasComponent<Velocity>(enemy) << '\n';
     bad::query<Name, Position>(&queryWorld)
-        .Without<Velocity>()
+        .without<Velocity>()
         .each([](const auto& name, const auto& pos) {
           std::cout << "name=" << name << ", position=" << pos << '\n';
         });
@@ -182,9 +182,9 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cout << "enemy:hasVelocity="
               << queryWorld.hasComponent<Velocity>(enemy) << '\n';
     bad::query(&queryWorld)
-        .With<Name>()
-        .With<Position>()
-        .Without<Velocity>()
+        .with<Name>()
+        .with<Position>()
+        .without<Velocity>()
         .each([](const auto& name, const auto& pos) {
           std::cout << "name=" << name << ", position=" << pos << '\n';
         });
@@ -202,6 +202,10 @@ int main(int /*argc*/, char * /*argv*/[]) {
       std::cout << "name=" << name << '\n';
     });
     std::cout << "has:arrow=" << queryWorld.has(arrow) << '\n';
+
+    bad::query(&queryWorld).each([](auto entity) {
+      std::cout << "entity=" << entity << '\n';
+    });
   }
 
   return 0;
