@@ -13,18 +13,19 @@ class Query {
   friend Query<> query(gsl::not_null<World *>);
 
 public:
-  template <Component Arg>
-  Query<Args..., Arg> with() {
+  template <Component Arg, ArgOrder order = ArgOrder::Append>
+  auto with() {
     std::set<EntityId> result;
     std::ranges::set_intersection(entities_,
                                   world_->entitiesWithComponent<Arg>(),
                                   std::inserter(result, result.begin()));
-    return Query<Args..., Arg>(world_, std::move(result));
-  }
-
-  template <Component Arg>
-  Query<Arg, Args...> withPrepend() {
-    return Query<Arg, Args...>(world_, std::move(with<Arg>().entities_));
+    if constexpr (order == ArgOrder::Prepend) {
+      return Query<Arg, Args...>(world_, std::move(result));
+    } else if constexpr (order == ArgOrder::Append) {
+      return Query<Args..., Arg>(world_, std::move(result));
+    } else {
+      static_assert(always_false_v<ArgOrder>, "Invalid ArgOrder");
+    }
   }
 
   template <Component Arg>
@@ -75,7 +76,7 @@ Query<Arg, Args...> query(gsl::not_null<World *> world) {
   if constexpr (sizeof...(Args) == 0) {
     return query(world).with<Arg>();
   } else {
-    return query<Args...>(world).template withPrepend<Arg>();
+    return query<Args...>(world).template with<Arg, ArgOrder::Prepend>();
   }
 }
 

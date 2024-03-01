@@ -21,6 +21,8 @@ template <typename F, typename... Args>
 concept ForEachFunctor =
     ForEachSimple<F, Args...> || ForEachWithEntityId<F, Args...>;
 
+enum class ArgOrder { Prepend, Append };
+
 template <typename>
 inline constexpr bool always_false_v = std::false_type::value;
 
