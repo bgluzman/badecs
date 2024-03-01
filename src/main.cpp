@@ -119,6 +119,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
     queryWorld.emplaceComponent<Ephemeral>(arrow);
 
     std::cout << "\n== manual queries  ==" << std::endl;
+
+    // syntax using .With()
     bad::query(&queryWorld)
         .With<Position>()
         .With<Velocity>()
@@ -139,6 +141,21 @@ int main(int /*argc*/, char * /*argv*/[]) {
           std::cout << "complex=" << complex << std::endl;
         });
 
+    // syntax using query<...> template params
+    bad::query<Name>(&queryWorld).each([](const auto& name) {
+      std::cout << "name=" << name << std::endl;
+    });
+    bad::query<Name, Position>(&queryWorld)
+        .each([](const auto& name, const auto& position) {
+          std::cout << "name=" << name << ", position=" << position
+                    << std::endl;
+        });
+    bad::query<Name, Position, Velocity>(&queryWorld)
+        .each([](const auto& name, const auto& position, const auto& velocity) {
+          std::cout << "name=" << name << ", position=" << position
+                    << ", velocity=" << velocity << std::endl;
+        });
+
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
     bad::Commands commands;
     bad::query(&queryWorld)
@@ -156,9 +173,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cout << "=== removeComponent test === \n";
     std::cout << "enemy:hasVelocity="
               << queryWorld.hasComponent<Velocity>(enemy) << '\n';
-    bad::query(&queryWorld)
-        .With<Name>()
-        .With<Position>()
+    bad::query<Name, Position>(&queryWorld)
         .Without<Velocity>()
         .each([](const auto& name, const auto& pos) {
           std::cout << "name=" << name << ", position=" << pos << '\n';
@@ -178,12 +193,12 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
     std::cout << "=== destroy test === \n";
     std::cout << "has:arrow=" << queryWorld.has(arrow) << '\n';
-    bad::query(&queryWorld).With<Name>().each([](const auto& name) {
+    bad::query<Name>(&queryWorld).each([](const auto& name) {
       std::cout << "name=" << name << '\n';
     });
     std::cout << "destroy:arrow=" << queryWorld.destroy(arrow) << '\n';
     std::cout << "has:arrow=" << queryWorld.has(arrow) << '\n';
-    bad::query(&queryWorld).With<Name>().each([](const auto& name) {
+    bad::query<Name>(&queryWorld).each([](const auto& name) {
       std::cout << "name=" << name << '\n';
     });
     std::cout << "has:arrow=" << queryWorld.has(arrow) << '\n';

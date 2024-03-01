@@ -23,6 +23,15 @@ public:
   }
 
   template <Component Arg>
+  Query<Arg, Args...> WithPrepend() {
+    std::set<EntityId> result;
+    std::ranges::set_intersection(entities_,
+                                  world_->entitiesWithComponent<Arg>(),
+                                  std::inserter(result, result.begin()));
+    return Query<Arg, Args...>(world_, std::move(result));
+  }
+
+  template <Component Arg>
   Query<Args...> Without() {
     std::set<EntityId> result;
     std::ranges::set_difference(entities_, world_->entitiesWithComponent<Arg>(),
@@ -57,5 +66,14 @@ private:
 };
 
 inline Query<> query(gsl::not_null<World *> world) { return Query<>(world); }
+
+template <Component Arg, Component... Args>
+Query<Arg, Args...> query(gsl::not_null<World *> world) {
+  if constexpr (sizeof...(Args) == 0) {
+    return query(world).With<Arg>();
+  } else {
+    return query<Args...>(world).template WithPrepend<Arg>();
+  }
+}
 
 }  // namespace bad
