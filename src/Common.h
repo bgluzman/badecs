@@ -17,7 +17,7 @@ template <typename T>
 concept MetaArg = std::is_same_v<T, EntityId> || std::is_same_v<T, Commands> ||
                   std::is_same_v<T, void>;
 template <typename F, typename Arg0, typename Arg1, typename... Args>
-concept ForEachFunctor =
+concept EachFunctor =
     MetaArg<Arg0> && MetaArg<Arg1> &&
     (std::is_same_v<Arg0, void> && std::invocable<F, Args&...> ||
      std::is_same_v<Arg1, void> && std::invocable<F, Arg0&, Args&...> ||
