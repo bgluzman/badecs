@@ -30,7 +30,7 @@ public:
   }
 
   template <Component Arg>
-  Query<Args...> without() {
+  Query<Args...> filter() {
     std::set<EntityId> result;
     std::ranges::set_difference(entities_, world_->entitiesWithComponent<Arg>(),
                                 std::inserter(result, result.begin()));

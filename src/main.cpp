@@ -174,7 +174,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cout << "enemy:hasVelocity="
               << queryWorld.hasComponent<Velocity>(enemy) << '\n';
     bad::query<Name, Position>(&queryWorld)
-        .without<Velocity>()
+        .filter<Velocity>()
         .each([](const auto& name, const auto& pos) {
           std::cout << "name=" << name << ", position=" << pos << '\n';
         });
@@ -184,7 +184,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     bad::query(&queryWorld)
         .with<Name>()
         .with<Position>()
-        .without<Velocity>()
+        .filter<Velocity>()
         .each([](const auto& name, const auto& pos) {
           std::cout << "name=" << name << ", position=" << pos << '\n';
         });
