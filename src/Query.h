@@ -39,7 +39,10 @@ public:
 
   void each(EachFunctor<Args...> auto&& functor) {
     using Functor = decltype(functor);
-    
+    static_assert(std::invocable<Commands&, EntityId, Args...>,
+                  "'Commands' and 'EntityId' arguments in wrong order for "
+                  "functor passed to 'Query::each'.");
+
     Commands commands;
     for (EntityId id : entities_) {
       if constexpr (EachFunctorSimple<Functor, Args...>) {
