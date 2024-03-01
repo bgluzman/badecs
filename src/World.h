@@ -52,6 +52,7 @@ inline EntityId World::create() { return entities_->add(); }
 inline bool World::destroy(EntityId id) {
   if (auto components = entities_->remove(id); components.has_value()) {
     for (ComponentId componentId : *components) {
+      // XXX: Cannot call removeComponent since the entity is already removed.
       components_->remove(id, componentId);
     }
     return true;
