@@ -38,7 +38,7 @@ public:
   }
 
   template <MetaArg Arg0 = void, MetaArg Arg1 = void>
-  void each(ForEachFunctor<Args...> auto&& functor) {
+  void each(ForEachFunctor<Arg0, Arg1, Args...> auto&& functor) {
     static_assert(!std::is_same_v<Arg0, void> || std::is_same_v<Arg1, void>,
                   "Arg1 must be void is Arg0 is void.");
     static_assert(std::is_same_v<Arg0, void> && std::is_same_v<Arg1, void> ||
