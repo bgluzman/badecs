@@ -37,30 +37,23 @@ public:
     return Query<Args...>(world_, std::move(result));
   }
 
-  template <MetaArg Arg0 = void, MetaArg Arg1 = void>
-  void each(EachFunctor<Arg0, Arg1, Args...> auto&& functor) {
-    static_assert(!std::is_same_v<Arg0, void> || std::is_same_v<Arg1, void>,
-                  "Arg1 must be void is Arg0 is void.");
-    static_assert(std::is_same_v<Arg0, void> && std::is_same_v<Arg1, void> ||
-                      !std::is_same_v<Arg0, Arg1>,
-                  "Arg0 and Arg1 must be different types.");
-
+  void each(EachFunctor<Args...> auto&& functor) {
+    using Functor = decltype(functor);
+    
     Commands commands;
     for (EntityId id : entities_) {
-      if constexpr (std::is_same_v<Arg0, EntityId>) {
-        if constexpr (std::is_same_v<Arg1, Commands>) {
-          functor(id, commands, *world_->getComponent<Args>(id)...);
-        } else {
-          functor(id, *world_->getComponent<Args>(id)...);
-        }
-      } else if constexpr (std::is_same_v<Arg0, Commands>) {
-        if constexpr (std::is_same_v<Arg1, Commands>) {
-          functor(commands, id, *world_->getComponent<Args>(id)...);
-        } else {
-          functor(commands, *world_->getComponent<Args>(id)...);
-        }
-      } else {
+      if constexpr (EachFunctorSimple<Functor, Args...>) {
         functor(*world_->getComponent<Args>(id)...);
+      } else if constexpr (EachFunctorEntity<Functor, Args...>) {
+        functor(id, *world_->getComponent<Args>(id)...);
+      } else if constexpr (EachFunctorCommands<Functor, Args...>) {
+        // TODO (bgluzman): Commands needs to be non-copyable...
+        functor(commands, *world_->getComponent<Args>(id)...);
+      } else if constexpr (EachFunctorEntityCommands<Functor, Args...>) {
+        // TODO (bgluzman): Commands needs to be non-copyable...
+        functor(id, commands, *world_->getComponent<Args>(id)...);
+      } else {
+        static_assert(always_false_v<Functor>, "Invalid functor type.");
       }
     }
     commands.execute(world_);

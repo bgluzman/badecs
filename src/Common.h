@@ -13,15 +13,19 @@ template <typename T>
 concept Component = std::is_copy_constructible_v<T>;
 
 struct Commands;
-template <typename T>
-concept MetaArg = std::is_same_v<T, EntityId> || std::is_same_v<T, Commands> ||
-                  std::is_same_v<T, void>;
-template <typename F, typename Arg0, typename Arg1, typename... Args>
+template <typename F, typename... Args>
+concept EachFunctorSimple = std::invocable<F, Args&...>;
+template <typename F, typename... Args>
+concept EachFunctorEntity = std::invocable<F, EntityId, Args&...>;
+template <typename F, typename... Args>
+concept EachFunctorCommands = std::invocable<F, EntityId, Commands&, Args&...>;
+template <typename F, typename... Args>
+concept EachFunctorEntityCommands =
+    std::invocable<F, EntityId, Commands&, Args&...>;
+template <typename F, typename... Args>
 concept EachFunctor =
-    MetaArg<Arg0> && MetaArg<Arg1> &&
-    (std::is_same_v<Arg0, void> && std::invocable<F, Args&...> ||
-     std::is_same_v<Arg1, void> && std::invocable<F, Arg0&, Args&...> ||
-     std::invocable<F, Arg0&, Arg1&, Args&...>);
+    EachFunctorSimple<F, Args...> || EachFunctorEntity<F, Args...> ||
+    EachFunctorCommands<F, Args...> || EachFunctorEntityCommands<F, Args...>;
 
 enum class ArgOrder { Prepend, Append };
 
