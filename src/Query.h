@@ -24,11 +24,7 @@ public:
 
   template <Component Arg>
   Query<Arg, Args...> withPrepend() {
-    std::set<EntityId> result;
-    std::ranges::set_intersection(entities_,
-                                  world_->entitiesWithComponent<Arg>(),
-                                  std::inserter(result, result.begin()));
-    return Query<Arg, Args...>(world_, std::move(result));
+    return Query<Arg, Args...>(world_, std::move(with<Arg>().entities_));
   }
 
   template <Component Arg>
