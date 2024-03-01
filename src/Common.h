@@ -21,6 +21,11 @@ template <typename F, typename... Args>
 concept ForEachFunctor =
     ForEachSimple<F, Args...> || ForEachWithEntityId<F, Args...>;
 
+struct Commands;
+template <typename T>
+concept MetaArg = std::is_same_v<T, EntityId> || std::is_same_v<T, Commands> ||
+                  std::is_same_v<T, void>;
+
 enum class ArgOrder { Prepend, Append };
 
 template <typename>

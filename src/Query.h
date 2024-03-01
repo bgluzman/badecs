@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Commands.h"
 #include "World.h"
 
 #include <gsl/gsl>
@@ -36,17 +37,33 @@ public:
     return Query<Args...>(world_, std::move(result));
   }
 
+  template <MetaArg Arg0 = void, MetaArg Arg1 = void>
   void each(ForEachFunctor<Args...> auto&& functor) {
+    static_assert(!std::is_same_v<Arg0, void> || std::is_same_v<Arg1, void>,
+                  "Arg1 must be void is Arg0 is void.");
+    static_assert(std::is_same_v<Arg0, void> && std::is_same_v<Arg1, void> ||
+                      !std::is_same_v<Arg0, Arg1>,
+                  "Arg0 and Arg1 must be different types.");
+
+    Commands commands;
     for (EntityId id : entities_) {
-      if constexpr (ForEachSimple<decltype(functor), Args...>) {
-        functor(*world_->getComponent<Args>(id)...);
-      } else if constexpr (ForEachWithEntityId<decltype(functor), Args...>) {
-        functor(id, *world_->getComponent<Args>(id)...);
+      if constexpr (std::is_same_v<Arg0, EntityId>) {
+        if constexpr (std::is_same_v<Arg1, Commands>) {
+          functor(id, commands, *world_->getComponent<Args>(id)...);
+        } else {
+          functor(id, *world_->getComponent<Args>(id)...);
+        }
+      } else if constexpr (std::is_same_v<Arg0, Commands>) {
+        if constexpr (std::is_same_v<Arg1, Commands>) {
+          functor(commands, id * world_->getComponent<Args>(id)...);
+        } else {
+          functor(commands, *world_->getComponent<Args>(id)...);
+        }
       } else {
-        static_assert(always_false_v<decltype(functor)>,
-                      "Invalid functor signature");
+        functor(*world_->getComponent<Args>(id)...);
       }
     }
+    commands.execute(world_);
   }
 
 private:
