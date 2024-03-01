@@ -37,17 +37,17 @@ public:
     return Query<Args...>(world_, std::move(result));
   }
 
-  void each(EachFunctorSimple<Args...> auto&& functor) {
+  void each(EachFunctor<Args...> auto&& functor) {
     for (EntityId id : entities_) {
       functor(*world_->getComponent<Args>(id)...);
     }
   }
-  void eachE(EachFunctorEntity<Args...> auto&& functor) {
+  void eachE(EachFunctor<EntityId, Args...> auto&& functor) {
     for (EntityId id : entities_) {
       functor(id, *world_->getComponent<Args>(id)...);
     }
   }
-  void eachC(EachFunctorCommands<Args...> auto&& functor) {
+  void eachC(EachFunctor<Commands, Args...> auto&& functor) {
     Commands commands;
     for (EntityId id : entities_) {
       // TODO (bgluzman): Commands needs to be non-copyable...
@@ -55,7 +55,7 @@ public:
     }
     commands.execute(world_);
   }
-  void eachEC(EachFunctorEntityCommands<Args...> auto&& functor) {
+  void eachEC(EachFunctor<EntityId, Commands, Args...> auto&& functor) {
     Commands commands;
     for (EntityId id : entities_) {
       // TODO (bgluzman): Commands needs to be non-copyable...
@@ -63,7 +63,7 @@ public:
     }
     commands.execute(world_);
   }
-  void eachCE(EachFunctorCommandsEntity<Args...> auto&& functor) {
+  void eachCE(EachFunctor<Commands, EntityId, Args...> auto&& functor) {
     Commands commands;
     for (EntityId id : entities_) {
       // TODO (bgluzman): Commands needs to be non-copyable...
