@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "ComponentRegistry.h"
+#include "EntityRegistry.h"
 
 #include <any>
 #include <cstdint>
@@ -40,22 +41,18 @@ public:
 private:
   bool removeComponent(EntityId entity, ComponentId component);
 
-  EntityId                                            entity_counter_ = 1;
-  std::map<EntityId, std::unordered_set<ComponentId>> entities_ = {};
-
+  std::unique_ptr<EntityRegistry> entities_ =
+      std::make_unique<EntityRegistry>();
   std::unique_ptr<ComponentRegistry> components_ =
       std::make_unique<ComponentRegistry>();
 };
 
-inline EntityId World::create() {
-  entities_.emplace(entity_counter_, std::unordered_set<ComponentId>{});
-  return entity_counter_++;
-}
+inline EntityId World::create() { return entities_->add(); }
 
-inline bool World::destroy(EntityId entity) {
-  if (auto it = entities_.find(entity); it != entities_.end()) {
-    for (ComponentId component : entities_.extract(it).mapped()) {
-      components_->remove(entity, component);
+inline bool World::destroy(EntityId id) {
+  if (auto components = entities_->remove(id); components.has_value()) {
+    for (ComponentId componentId : *components) {
+      components_->remove(id, componentId);
     }
     return true;
   }
@@ -63,19 +60,19 @@ inline bool World::destroy(EntityId entity) {
 }
 
 inline bool World::has(EntityId id) const noexcept {
-  return entities_.contains(id);
+  return entities_->has(id);
 }
 
 template <Component T, typename... Ts>
 void World::emplaceComponent(EntityId entity, Ts&&...args) {
-  entities_[entity].emplace(components_->getComponentId<T>());
   components_->emplace<T>(entity, std::forward<Ts>(args)...);
+  entities_->addComponent(entity, components_->getComponentId<T>());
 }
 
 template <Component T>
 void World::setComponent(EntityId entity, const T& value) {
-  entities_[entity].emplace(components_->getComponentId<T>());
   components_->set(entity, value);
+  entities_->addComponent(entity, components_->getComponentId<T>());
 }
 
 template <Component T>
@@ -84,12 +81,8 @@ bool World::removeComponent(EntityId entity) {
 }
 
 inline bool World::removeComponent(EntityId entity, ComponentId component) {
-  if (auto it = entities_.find(entity); it != entities_.end()) {
-    if (it->second.erase(component) > 0) {
-      return components_->remove(entity, component);
-    }
-  }
-  return false;
+  entities_->removeComponent(entity, component);
+  return components_->remove(entity, component);
 }
 
 template <Component T>
@@ -107,8 +100,6 @@ decltype(auto) World::entitiesWithComponent() {
   return components_->entitiesWithComponent<Arg>();
 }
 
-inline decltype(auto) World::allEntities() {
-  return entities_ | std::views::keys;
-}
+inline decltype(auto) World::allEntities() { return entities_->entities(); }
 
 }  // namespace bad

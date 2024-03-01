@@ -23,6 +23,8 @@ add_executable(badecs
         src/Column.h
         src/ComponentRegistry.cpp
         src/ComponentRegistry.h
+        src/EntityRegistry.cpp
+        src/EntityRegistry.h
         src/Commands.cpp
         src/Commands.h
         src/Query.cpp
