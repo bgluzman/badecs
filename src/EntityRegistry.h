@@ -11,7 +11,9 @@ namespace bad {
 
 class EntityRegistry {
 public:
-  EntityId                                       add();
+  EntityId add();
+  EntityId addDeferred();
+  void     instantiateDeferred(EntityId id);
   std::optional<std::unordered_set<ComponentId>> remove(EntityId id);
   [[nodiscard]] bool has(EntityId id) const noexcept;
 
@@ -28,6 +30,12 @@ private:
 inline EntityId EntityRegistry::add() {
   entities_.emplace(entity_counter_, std::unordered_set<ComponentId>{});
   return entity_counter_++;
+}
+
+inline EntityId EntityRegistry::addDeferred() { return entity_counter_++; }
+
+inline void EntityRegistry::instantiateDeferred(EntityId id) {
+  entities_.emplace(id, std::unordered_set<ComponentId>{});
 }
 
 inline std::optional<std::unordered_set<ComponentId>>
