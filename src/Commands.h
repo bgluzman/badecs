@@ -36,9 +36,9 @@ private:
 inline Commands::Commands(gsl::not_null<World *> world) : world_(world) {}
 
 inline EntityId Commands::create() {
-  EntityId entity = world_->createDeferred();
+  EntityId entity = world_->reserve();
   commands_.emplace_back(
-      [entity](World *world) { world->instantiateDeferred(entity); });
+      [entity](World *world) { world->instantiate(entity); });
   return entity;
 }
 
