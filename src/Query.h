@@ -48,28 +48,28 @@ public:
     }
   }
   void eachC(EachFunctor<Commands, Args...> auto&& functor) {
-    Commands commands;
+    Commands commands(world_);
     for (EntityId id : entities_) {
       // TODO (bgluzman): Commands needs to be non-copyable...
       functor(commands, *world_->getComponent<Args>(id)...);
     }
-    commands.execute(world_);
+    commands.execute();
   }
   void eachEC(EachFunctor<EntityId, Commands, Args...> auto&& functor) {
-    Commands commands;
+    Commands commands(world_);
     for (EntityId id : entities_) {
       // TODO (bgluzman): Commands needs to be non-copyable...
       functor(id, commands, *world_->getComponent<Args>(id)...);
     }
-    commands.execute(world_);
+    commands.execute();
   }
   void eachCE(EachFunctor<Commands, EntityId, Args...> auto&& functor) {
-    Commands commands;
+    Commands commands(world_);
     for (EntityId id : entities_) {
       // TODO (bgluzman): Commands needs to be non-copyable...
       functor(commands, id, *world_->getComponent<Args>(id)...);
     }
-    commands.execute(world_);
+    commands.execute();
   }
 
 private:

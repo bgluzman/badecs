@@ -12,29 +12,64 @@ namespace bad {
 class Commands {
 
 public:
-  //  void spawnEntity();
-  //  void destroyEntity();
-  //  void removeComponent();
+  explicit Commands(gsl::not_null<World *> world);
+
+  EntityId create();
+  void     destroy(EntityId entity);
+
+  template <Component T, typename... Ts>
+  void emplaceComponent(EntityId entity, Ts&&...args);
   template <Component T>
   void setComponent(EntityId entity, const T& value);
+  template <Component T>
+  void removeComponent(EntityId entity);
 
-  void execute(gsl::not_null<World *> world);
+  void execute();
 
 private:
   using Command = std::function<void(World *)>;
-  std::vector<Command> commands_;
+
+  gsl::not_null<World *> world_;
+  std::vector<Command>   commands_;
 };
+
+inline Commands::Commands(gsl::not_null<World *> world) : world_(world) {}
+
+inline EntityId Commands::create() {
+  EntityId entity = world_->createDeferred();
+  commands_.emplace_back(
+      [entity](World *world) { world->instantiateDeferred(entity); });
+  return entity;
+}
+
+inline void Commands::destroy(EntityId entity) {
+  commands_.emplace_back([entity](World *world) { world->destroy(entity); });
+}
+
+template <Component T, typename... Ts>
+void Commands::emplaceComponent(EntityId entity, Ts&&...args) {
+  commands_.emplace_back(
+      [entity, ... args = std::forward<Ts>(args)](World *world) mutable {
+        world->emplaceComponent<T>(entity, std::forward<Ts>(args)...);
+      });
+}
 
 template <Component T>
 void Commands::setComponent(EntityId entity, const T& value) {
-  commands_.push_back([entity, value](World *world) mutable {
+  commands_.emplace_back([entity, value](World *world) mutable {
     world->setComponent(entity, value);
   });
 }
 
-inline void Commands::execute(gsl::not_null<World *> world) {
+template <Component T>
+void Commands::removeComponent(EntityId entity) {
+  commands_.emplace_back(
+      [entity](World *world) { world->removeComponent<T>(entity); });
+}
+
+inline void Commands::execute() {
   for (const Command& command : commands_) {
-    command(world.get());
+    command(world_.get());
   }
   commands_.clear();
 }

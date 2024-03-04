@@ -157,7 +157,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
         });
 
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
-    bad::Commands commands;
+    bad::Commands commands(&queryWorld);
     bad::query(&queryWorld)
         .with<Name>()
         .with<Ephemeral>()
@@ -167,7 +167,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
           commands.setComponent(entity, Tag{});
         });
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
-    commands.execute(&queryWorld);
+    commands.execute();
     std::cout << "arrow:hasTag=" << queryWorld.hasComponent<Tag>(arrow) << '\n';
 
     std::cout << "=== removeComponent test === \n";
