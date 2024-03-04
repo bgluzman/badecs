@@ -14,13 +14,11 @@ namespace bad {
 struct Column {
 public:
   template <Component T, typename... Ts>
-  void emplace(EntityId entityId, Ts&&...args);
-  template <Component T>
-  void               set(EntityId entityId, const T& value);
-  bool               remove(EntityId entityId);
-  [[nodiscard]] bool has(EntityId entityId) const noexcept;
-  template <Component T>
-  [[nodiscard]] T *get(EntityId entityId);
+  void                    emplace(EntityId entityId, Ts&&...args);
+  void                    set(EntityId entityId, std::any value);
+  bool                    remove(EntityId entityId);
+  [[nodiscard]] bool      has(EntityId entityId) const noexcept;
+  [[nodiscard]] std::any *get(EntityId entityId);
 
   [[nodiscard]] decltype(auto) getEntityIds() const;
 
@@ -38,23 +36,21 @@ void Column::emplace(EntityId entityId, Ts&&...args) {
       std::any(std::in_place_type<T>, std::forward<Ts>(args)...);
 }
 
-template <Component T>
-void Column::set(EntityId entityId, const T& value) {
-  components_[entityId] = value;
-}
-
-inline bool Column::has(EntityId entityId) const noexcept {
-  return components_.contains(entityId);
+inline void Column::set(EntityId entityId, std::any value) {
+  components_[entityId] = std::move(value);
 }
 
 inline bool Column::remove(EntityId entityId) {
   return components_.erase(entityId) > 0;
 }
 
-template <Component T>
-T *Column::get(EntityId entityId) {
+inline bool Column::has(EntityId entityId) const noexcept {
+  return components_.contains(entityId);
+}
+
+inline std::any *Column::get(EntityId entityId) {
   if (auto it = components_.find(entityId); it != components_.end()) {
-    return &std::any_cast<T&>(it->second);
+    return &it->second;
   } else {
     return nullptr;
   }

@@ -124,7 +124,7 @@ inline bool ComponentRegistry::has(EntityId    entity,
 template <Component T>
 T *ComponentRegistry::get(EntityId entityId) {
   if (Column *col = getColumn<T>(); col) {
-    return col->get<T>(entityId);
+    return std::any_cast<T>(col->get(entityId));
   }
   return nullptr;
 }
