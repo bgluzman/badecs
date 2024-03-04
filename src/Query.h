@@ -47,27 +47,26 @@ public:
       functor(id, *world_->getComponent<Args>(id)...);
     }
   }
-  void eachC(EachFunctor<Commands, Args...> auto&& functor) {
+  void eachC(EachFunctor<gsl::not_null<Commands *>, Args...> auto&& functor) {
     Commands commands(world_);
     for (EntityId id : entities_) {
-      // TODO (bgluzman): Commands needs to be non-copyable...
-      functor(commands, *world_->getComponent<Args>(id)...);
+      functor(&commands, *world_->getComponent<Args>(id)...);
     }
     commands.execute();
   }
-  void eachEC(EachFunctor<EntityId, Commands, Args...> auto&& functor) {
+  void eachEC(EachFunctor<EntityId, gsl::not_null<Commands *>, Args...> auto&&
+                  functor) {
     Commands commands(world_);
     for (EntityId id : entities_) {
-      // TODO (bgluzman): Commands needs to be non-copyable...
-      functor(id, commands, *world_->getComponent<Args>(id)...);
+      functor(id, &commands, *world_->getComponent<Args>(id)...);
     }
     commands.execute();
   }
-  void eachCE(EachFunctor<Commands, EntityId, Args...> auto&& functor) {
+  void eachCE(EachFunctor<gsl::not_null<Commands *>, EntityId, Args...> auto&&
+                  functor) {
     Commands commands(world_);
     for (EntityId id : entities_) {
-      // TODO (bgluzman): Commands needs to be non-copyable...
-      functor(commands, id, *world_->getComponent<Args>(id)...);
+      functor(&commands, id, *world_->getComponent<Args>(id)...);
     }
     commands.execute();
   }

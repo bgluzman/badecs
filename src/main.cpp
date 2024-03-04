@@ -209,13 +209,13 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
     bad::query<Position>(&queryWorld)
         .eachEC(
-            [](bad::EntityId entity, bad::Commands& commands, const auto& pos) {
+            [](bad::EntityId entity, bad::Commands *commands, const auto& pos) {
               std::cout << "entity=" << entity << ", position=" << pos << '\n';
-              commands.removeComponent<Position>(entity);
+              commands->removeComponent<Position>(entity);
 
-              bad::EntityId newEntity = commands.create();
-              commands.setComponent<Position>(newEntity, pos);
-              commands.setComponent<Tag>(newEntity, {});
+              bad::EntityId newEntity = commands->create();
+              commands->setComponent<Position>(newEntity, pos);
+              commands->setComponent<Tag>(newEntity, {});
             });
     bad::query<Position>(&queryWorld)
         .eachE([&w = queryWorld](bad::EntityId entity, const auto& pos) {
