@@ -35,6 +35,8 @@ public:
   [[nodiscard]] bool hasComponent(EntityId entity) const noexcept;
   template <Component T>
   [[nodiscard]] T *getComponent(EntityId entity);
+  template <Component T>
+  [[nodiscard]] const T *getComponent(EntityId entity) const;
 
   template <Component Arg>
   decltype(auto) entitiesWithComponent();
@@ -96,6 +98,11 @@ bool World::hasComponent(EntityId entity) const noexcept {
 
 template <Component T>
 T *World::getComponent(EntityId entity) {
+  return components_->get<T>(entity);
+}
+
+template <Component T>
+const T *World::getComponent(EntityId entity) const {
   return components_->get<T>(entity);
 }
 
