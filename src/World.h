@@ -20,8 +20,8 @@ namespace bad {
 class World {
 public:
   EntityId           create();
-  EntityId           createDeferred();
-  void               instantiateDeferred(EntityId id);
+  EntityId           reserve();
+  void               instantiate(EntityId id);
   bool               destroy(EntityId id);
   [[nodiscard]] bool has(EntityId id) const noexcept;
 
@@ -51,11 +51,9 @@ private:
 
 inline EntityId World::create() { return entities_->add(); }
 
-inline EntityId World::createDeferred() { return entities_->addDeferred(); }
+inline EntityId World::reserve() { return entities_->reserve(); }
 
-inline void World::instantiateDeferred(bad::EntityId id) {
-  entities_->instantiateDeferred(id);
-}
+inline void World::instantiate(bad::EntityId id) { entities_->instantiate(id); }
 
 inline bool World::destroy(EntityId id) {
   if (auto components = entities_->remove(id); components.has_value()) {
