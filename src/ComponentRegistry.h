@@ -30,6 +30,10 @@ public:
   template <Component T>
   [[nodiscard]] T        *get(EntityId entity);
   [[nodiscard]] std::any *get(EntityId entityId, ComponentId component);
+  template <Component T>
+  [[nodiscard]] const T        *get(EntityId entity) const;
+  [[nodiscard]] const std::any *get(EntityId    entityId,
+                                    ComponentId component) const;
 
   template <Component Arg>
   [[nodiscard]] decltype(auto) entitiesWithComponent() const;
@@ -133,13 +137,25 @@ inline bool ComponentRegistry::has(EntityId    entity,
 
 template <Component T>
 T *ComponentRegistry::get(EntityId entity) {
-  ComponentId component = getComponentId<T>();
-  return std::any_cast<T>(get(entity, component));
+  return const_cast<T *>(
+      const_cast<const ComponentRegistry *>(this)->get<T>(entity));
 }
 
 inline std::any *ComponentRegistry::get(EntityId    entity,
                                         ComponentId component) {
-  if (Column *col = getColumn(component); col) {
+  return const_cast<std::any *>(
+      const_cast<const ComponentRegistry *>(this)->get(entity, component));
+}
+
+template <Component T>
+const T *ComponentRegistry::get(EntityId entity) const {
+  ComponentId component = getComponentId<T>();
+  return std::any_cast<T>(get(entity, component));
+}
+
+inline const std::any *ComponentRegistry::get(EntityId    entity,
+                                              ComponentId component) const {
+  if (const Column *col = getColumn(component); col) {
     return col->get(entity);
   }
   return nullptr;

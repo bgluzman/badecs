@@ -14,11 +14,12 @@ namespace bad {
 struct Column {
 public:
   template <Component T, typename... Ts>
-  void                    emplace(EntityId entityId, Ts&&...args);
-  void                    set(EntityId entityId, std::any value);
-  bool                    remove(EntityId entityId);
-  [[nodiscard]] bool      has(EntityId entityId) const noexcept;
-  [[nodiscard]] std::any *get(EntityId entityId);
+  void                          emplace(EntityId entityId, Ts&&...args);
+  void                          set(EntityId entityId, std::any value);
+  bool                          remove(EntityId entityId);
+  [[nodiscard]] bool            has(EntityId entityId) const noexcept;
+  [[nodiscard]] std::any       *get(EntityId entityId);
+  [[nodiscard]] const std::any *get(EntityId entityId) const;
 
   [[nodiscard]] decltype(auto) getEntityIds() const;
 
@@ -49,6 +50,11 @@ inline bool Column::has(EntityId entityId) const noexcept {
 }
 
 inline std::any *Column::get(EntityId entityId) {
+  return const_cast<std::any *>(
+      const_cast<const Column *>(this)->get(entityId));
+}
+
+inline const std::any *Column::get(EntityId entityId) const {
   if (auto it = components_.find(entityId); it != components_.end()) {
     return &it->second;
   } else {
