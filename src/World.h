@@ -41,8 +41,6 @@ public:
   decltype(auto) allEntities();
 
 private:
-  bool removeComponent(EntityId entity, ComponentId component);
-
   std::unique_ptr<EntityRegistry> entities_ =
       std::make_unique<EntityRegistry>();
   std::unique_ptr<ComponentRegistry> components_ =
@@ -86,10 +84,7 @@ void World::setComponent(EntityId entity, const T& value) {
 
 template <Component T>
 bool World::removeComponent(EntityId entity) {
-  return removeComponent(entity, components_->getComponentId<T>());
-}
-
-inline bool World::removeComponent(EntityId entity, ComponentId component) {
+  ComponentId component = components_->getComponentId<T>();
   entities_->removeComponent(entity, component);
   return components_->remove(entity, component);
 }
