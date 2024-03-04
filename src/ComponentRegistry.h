@@ -18,7 +18,8 @@ public:
   template <Component T, typename... Ts>
   void emplace(EntityId entityId, Ts&&...args);
   template <Component T>
-  void set(EntityId entityId, const T& value);
+  void set(EntityId entity, const T& value);
+  void set(EntityId entity, ComponentId component, std::any value);
   template <Component T>
   bool remove(EntityId entity);
   bool remove(EntityId entity, ComponentId component);
@@ -27,7 +28,8 @@ public:
   [[nodiscard]] bool has(EntityId    entityId,
                          ComponentId component) const noexcept;
   template <Component T>
-  [[nodiscard]] T *get(EntityId entityId);
+  [[nodiscard]] T        *get(EntityId entity);
+  [[nodiscard]] std::any *get(EntityId entityId, ComponentId component);
 
   template <Component Arg>
   [[nodiscard]] decltype(auto) entitiesWithComponent() const;
@@ -40,7 +42,8 @@ private:
   [[nodiscard]] const Column *getColumn() const;
   [[nodiscard]] const Column *getColumn(ComponentId id) const;
   template <Component T>
-  Column& getOrCreateColumn();
+  Column&        getOrCreateColumn();
+  inline Column& getOrCreateColumn(ComponentId id);
 
   static inline ComponentId kComponentIdCounter = 1;
   // XXX: std::unordered_map's semantics are important here! See similar note
@@ -79,11 +82,14 @@ inline const Column *ComponentRegistry::getColumn(ComponentId id) const {
 
 template <Component T>
 Column& ComponentRegistry::getOrCreateColumn() {
-  if (Column *col = getColumn<T>(); col) {
+  return getOrCreateColumn(getComponentId<T>());
+}
+
+inline Column& ComponentRegistry::getOrCreateColumn(ComponentId id) {
+  if (Column *col = getColumn(id); col) {
     return *col;
   }
-  ComponentId componentId = getComponentId<T>();
-  return columns_.emplace(componentId, Column{}).first->second;
+  return columns_.emplace(id, Column{}).first->second;
 }
 
 template <Component T, typename... Ts>
@@ -93,9 +99,13 @@ void ComponentRegistry::emplace(EntityId entityId, Ts&&...args) {
 }
 
 template <Component T>
-void ComponentRegistry::set(EntityId entityId, const T& value) {
-  Column& col = getOrCreateColumn<T>();
-  col.set(entityId, value);
+void ComponentRegistry::set(EntityId entity, const T& value) {
+  set(entity, getComponentId<T>(), std::make_any<T>(value));
+}
+
+inline void ComponentRegistry::set(EntityId entity, ComponentId component,
+                                   std::any value) {
+  getOrCreateColumn(component).set(entity, std::move(value));
 }
 
 template <Component T>
@@ -122,9 +132,15 @@ inline bool ComponentRegistry::has(EntityId    entity,
 }
 
 template <Component T>
-T *ComponentRegistry::get(EntityId entityId) {
-  if (Column *col = getColumn<T>(); col) {
-    return std::any_cast<T>(col->get(entityId));
+T *ComponentRegistry::get(EntityId entity) {
+  ComponentId component = getComponentId<T>();
+  return std::any_cast<T>(get(entity, component));
+}
+
+inline std::any *ComponentRegistry::get(EntityId    entity,
+                                        ComponentId component) {
+  if (Column *col = getColumn(component); col) {
+    return col->get(entity);
   }
   return nullptr;
 }
