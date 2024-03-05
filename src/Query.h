@@ -48,27 +48,24 @@ public:
     }
   }
   void eachC(EachFunctor<gsl::not_null<Commands *>, Args...> auto&& functor) {
-    Commands commands(world_);
+    ScopedCommands commands(world_);
     for (EntityId id : entities_) {
       functor(&commands, *world_->getComponent<Args>(id)...);
     }
-    commands.execute();
   }
   void eachEC(EachFunctor<EntityId, gsl::not_null<Commands *>, Args...> auto&&
                   functor) {
-    Commands commands(world_);
+    ScopedCommands commands(world_);
     for (EntityId id : entities_) {
       functor(id, &commands, *world_->getComponent<Args>(id)...);
     }
-    commands.execute();
   }
   void eachCE(EachFunctor<gsl::not_null<Commands *>, EntityId, Args...> auto&&
                   functor) {
-    Commands commands(world_);
+    ScopedCommands commands(world_);
     for (EntityId id : entities_) {
       functor(&commands, id, *world_->getComponent<Args>(id)...);
     }
-    commands.execute();
   }
 
 private:

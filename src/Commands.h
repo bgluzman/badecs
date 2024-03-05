@@ -74,4 +74,10 @@ inline void Commands::execute() {
   commands_.clear();
 }
 
+class ScopedCommands : public Commands {
+public:
+  explicit ScopedCommands(gsl::not_null<World *> world) : Commands(world) {}
+  ~ScopedCommands() noexcept { execute(); }
+};
+
 }  // namespace bad
