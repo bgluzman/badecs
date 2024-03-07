@@ -43,7 +43,7 @@ public:
   decltype(auto) allEntities();
 
   template <Component Arg>
-  Column::As<Arg> components() {
+  auto components() {
     return components_->components<Arg>();
   }
 

@@ -39,8 +39,8 @@ public:
   [[nodiscard]] decltype(auto) entitiesWithComponent() const;
 
   template <Component T>
-  Column::As<T> components() {
-    return Column::As<T>(getOrCreateColumn<T>());
+  Components<T> components() {
+    return Components<T>(getOrCreateColumn<T>());
   }
 
 private:
