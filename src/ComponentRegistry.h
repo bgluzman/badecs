@@ -38,6 +38,11 @@ public:
   template <Component Arg>
   [[nodiscard]] decltype(auto) entitiesWithComponent() const;
 
+  template <Component T>
+  Column::As<T> components() {
+    return Column::As<T>(getOrCreateColumn<T>());
+  }
+
 private:
   template <Component T>
   [[nodiscard]] Column *getColumn();

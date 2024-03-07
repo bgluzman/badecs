@@ -21,7 +21,89 @@ public:
   [[nodiscard]] std::any       *get(EntityId entityId);
   [[nodiscard]] const std::any *get(EntityId entityId) const;
 
+  [[nodiscard]] std::size_t size() const noexcept;
+
   [[nodiscard]] decltype(auto) getEntityIds() const;
+
+  std::map<EntityId, std::any>::iterator begin() noexcept {
+    return components_.begin();
+  }
+  std::map<EntityId, std::any>::iterator end() noexcept {
+    return components_.end();
+  }
+  [[nodiscard]] std::map<EntityId, std::any>::const_iterator
+  cbegin() const noexcept {
+    return components_.cbegin();
+  }
+  [[nodiscard]] std::map<EntityId, std::any>::const_iterator
+  cend() const noexcept {
+    return components_.cend();
+  }
+
+  template <Component T>
+  class As {
+  public:
+    explicit As(Column& column) : column_(column) {}
+
+    class Iter {
+      using UnderlyingIter = std::map<EntityId, std::any>::iterator;
+
+    public:
+      using difference_type = std::ptrdiff_t;
+      using value_type = std::pair<EntityId, T&>;
+      using pointer = void;
+      using reference = value_type&;
+      using iterator_category = std::forward_iterator_tag;
+
+      Iter() : it_() {}
+      explicit Iter(UnderlyingIter it) : it_(it) {}
+
+      value_type operator*() const {
+        return {it_->first, std::any_cast<T&>(it_->second)};
+      }
+
+      Iter& operator++() {
+        ++it_;
+        return *this;
+      }
+      Iter operator++(int) {
+        Iter value = *this;
+        ++it_;
+        return value;
+      }
+
+      bool operator<=>(const Iter& other) const = default;
+
+    private:
+      UnderlyingIter it_ = UnderlyingIter{};
+    };
+
+    [[nodiscard]] Iter begin() noexcept {
+      return Iter(column_.components_.begin());
+    }
+    [[nodiscard]] Iter end() noexcept {
+      return Iter(column_.components_.end());
+    }
+    [[nodiscard]] Iter begin() const noexcept {
+      return Iter(column_.components_.begin());
+    }
+    [[nodiscard]] Iter end() const noexcept {
+      return Iter(column_.components_.end());
+    }
+
+  private:
+    Column& column_;
+  };
+  static_assert(std::forward_iterator<As<int>::Iter>);
+
+  template <Component T>
+  [[nodiscard]] As<T> as() noexcept {
+    return As<T>(*this);
+  }
+  template <Component T>
+  [[nodiscard]] const As<T> as() const noexcept {
+    return As<T>(*this);
+  }
 
 private:
   // XXX: std::map's pointer/reference invalidation semantics here are
@@ -61,6 +143,8 @@ inline const std::any *Column::get(EntityId entityId) const {
     return nullptr;
   }
 }
+
+inline std::size_t Column::size() const noexcept { return components_.size(); }
 
 inline decltype(auto) Column::getEntityIds() const {
   return components_ | std::views::keys;

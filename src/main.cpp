@@ -222,6 +222,10 @@ int main(int /*argc*/, char * /*argv*/[]) {
           std::cout << "entity=" << entity << ", position=" << pos
                     << ", has:tag=" << w.hasComponent<Tag>(entity) << '\n';
         });
+
+    for (auto [id, value] : queryWorld.components<Position>()) {
+      std::cout << "[as] entity=" << id << ", position=" << value << '\n';
+    }
   }
 
   return 0;

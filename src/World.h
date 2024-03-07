@@ -42,6 +42,11 @@ public:
   decltype(auto) entitiesWithComponent();
   decltype(auto) allEntities();
 
+  template <Component Arg>
+  Column::As<Arg> components() {
+    return components_->components<Arg>();
+  }
+
 private:
   std::unique_ptr<EntityRegistry> entities_ =
       std::make_unique<EntityRegistry>();
