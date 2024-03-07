@@ -148,6 +148,8 @@ static_assert(std::forward_iterator<Components<int>::Iter>);
 
 template <Component... Ts>
 class View {
+  static_assert(sizeof...(Ts) > 0, "View must have at least one component");
+
 public:
   explicit View(std::array<gsl::not_null<Column *>, sizeof...(Ts)> columns)
       : columns_(columns) {
@@ -212,11 +214,9 @@ public:
   static_assert(std::forward_iterator<Iterator>);
 
   [[nodiscard]] Iterator begin() noexcept {
-    // TODO (bgluzman): empty view support
     return Iterator(columns_, columns_[0]->begin());
   }
   [[nodiscard]] Iterator end() noexcept {
-    // TODO (bgluzman): empty view support
     return Iterator(columns_, columns_[0]->end());
   }
 
