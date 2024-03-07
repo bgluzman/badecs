@@ -146,6 +146,97 @@ private:
 };
 static_assert(std::forward_iterator<Components<int>::Iter>);
 
+template <Component Smallest, Component... Rest>
+class SortedView {
+
+public:
+  explicit SortedView(gsl::not_null<Column *> smallest,
+                      std::array<gsl::not_null<Column *>, sizeof...(Rest)> rest)
+    requires(sizeof...(Rest) > 0)
+      : smallest_(smallest), rest_(rest) {}
+  explicit SortedView(gsl::not_null<Column *> smallest)
+    requires(sizeof...(Rest) == 0)
+      : smallest_(smallest), rest_() {}
+
+  class Iterator {
+    using UnderlyingIter = std::map<EntityId, std::any>::iterator;
+
+  public:
+    using difference_type = std::ptrdiff_t;
+    using value_type = std::tuple<EntityId, Smallest&, Rest&...>;
+    using pointer = void;
+    using reference = value_type&;
+    using iterator_category = std::forward_iterator_tag;
+
+    struct begin_tag {};
+    struct end_tag {};
+
+    Iterator() : it_(), smallest_(), rest_() {}
+    explicit Iterator(gsl::not_null<Column *> smallest,
+                      std::array<gsl::not_null<Column *>, sizeof...(Rest)> rest,
+                      begin_tag)
+        : it_(smallest->begin()), smallest_(smallest), rest_(rest) {
+      advance();
+    }
+    explicit Iterator(gsl::not_null<Column *> smallest,
+                      std::array<gsl::not_null<Column *>, sizeof...(Rest)> rest,
+                      end_tag)
+        : it_(smallest->end()), smallest_(smallest), rest_(rest) {
+      advance();
+    }
+
+    value_type operator*() const {
+      auto helper = [this]<std::size_t... Is>(std::index_sequence<Is...>) {
+        return value_type{it_->first, std::any_cast<Smallest&>(it_->second),
+                          *std::any_cast<Rest>(rest_[Is]->get(it_->first))...};
+      };
+      return helper(std::index_sequence_for<Rest...>{});
+    }
+
+    Iterator& operator++() {
+      ++it_;
+      advance();
+      return *this;
+    }
+    Iterator operator++(int) {
+      Iterator value = *this;
+      ++it_;
+      advance();
+      return value;
+    }
+
+    bool operator==(const Iterator& other) const { return it_ == other.it_; }
+    bool operator!=(const Iterator& other) const { return it_ != other.it_; }
+
+  private:
+    void advance() {
+      for (; it_ != smallest_->end(); ++it_) {
+        EntityId id = it_->first;
+        if (std::all_of(rest_.begin(), rest_.end(),
+                        [id](auto col) { return col->has(id); })) {
+          return;
+        }
+      }
+    }
+
+    UnderlyingIter                                       it_;
+    Column                                              *smallest_;
+    std::array<gsl::not_null<Column *>, sizeof...(Rest)> rest_;
+  };
+  static_assert(std::forward_iterator<Iterator>);
+
+  [[nodiscard]] Iterator begin() noexcept {
+    return Iterator(smallest_, rest_, typename Iterator::begin_tag{});
+  }
+  [[nodiscard]] Iterator end() noexcept {
+    return Iterator(smallest_, rest_, typename Iterator::end_tag{});
+  }
+
+private:
+  gsl::not_null<Column *>                              smallest_;
+  std::array<gsl::not_null<Column *>, sizeof...(Rest)> rest_;
+};
+
 template <Component... Ts>
 class View {
   static_assert(sizeof...(Ts) > 0, "View must have at least one component");
