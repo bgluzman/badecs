@@ -46,6 +46,20 @@ public:
   auto components() {
     return components_->components<Arg>();
   }
+  template <Component T>
+  [[nodiscard]] Column *getColumn() {
+    return components_->getColumn<T>();
+  }
+  [[nodiscard]] Column *getColumn(ComponentId id) {
+    return components_->getColumn(id);
+  }
+  template <Component T>
+  [[nodiscard]] const Column *getColumn() const {
+    return components_->getColumn<T>();
+  }
+  [[nodiscard]] const Column *getColumn(ComponentId id) const {
+    return components_->getColumn(id);
+  }
 
 private:
   std::unique_ptr<EntityRegistry> entities_ =

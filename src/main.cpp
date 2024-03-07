@@ -207,24 +207,33 @@ int main(int /*argc*/, char * /*argv*/[]) {
       std::cout << "entity=" << entity << '\n';
     });
 
-    bad::query<Position>(&queryWorld)
-        .eachEC(
-            [](bad::EntityId entity, bad::Commands *commands, const auto& pos) {
-              std::cout << "entity=" << entity << ", position=" << pos << '\n';
-              commands->removeComponent<Position>(entity);
+    //    bad::query<Position>(&queryWorld)
+    //        .eachEC(
+    //            [](bad::EntityId entity, bad::Commands *commands, const auto&
+    //            pos) {
+    //              std::cout << "entity=" << entity << ", position=" << pos <<
+    //              '\n'; commands->removeComponent<Position>(entity);
+    //
+    //              bad::EntityId newEntity = commands->create();
+    //              commands->setComponent<Position>(newEntity, pos);
+    //              commands->setComponent<Tag>(newEntity, {});
+    //            });
+    //    bad::query<Position>(&queryWorld)
+    //        .eachE([&w = queryWorld](bad::EntityId entity, const auto& pos) {
+    //          std::cout << "entity=" << entity << ", position=" << pos
+    //                    << ", has:tag=" << w.hasComponent<Tag>(entity) <<
+    //                    '\n';
+    //        });
+    //
+    //    for (auto [id, value] : queryWorld.components<Position>()) {
+    //      std::cout << "[as] entity=" << id << ", position=" << value << '\n';
+    //    }
 
-              bad::EntityId newEntity = commands->create();
-              commands->setComponent<Position>(newEntity, pos);
-              commands->setComponent<Tag>(newEntity, {});
-            });
-    bad::query<Position>(&queryWorld)
-        .eachE([&w = queryWorld](bad::EntityId entity, const auto& pos) {
-          std::cout << "entity=" << entity << ", position=" << pos
-                    << ", has:tag=" << w.hasComponent<Tag>(entity) << '\n';
-        });
-
-    for (auto [id, value] : queryWorld.components<Position>()) {
-      std::cout << "[as] entity=" << id << ", position=" << value << '\n';
+    auto col1 = queryWorld.getColumn<Name>();
+    auto col2 = queryWorld.getColumn<Position>();
+    for (auto [id, name, pos] : bad::View<Name, Position>({col1, col2})) {
+      std::cout << "[view] entity=" << id << ", name=" << name
+                << ", position=" << pos << '\n';
     }
   }
 

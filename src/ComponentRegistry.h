@@ -43,13 +43,14 @@ public:
     return Components<T>(getOrCreateColumn<T>());
   }
 
-private:
   template <Component T>
   [[nodiscard]] Column *getColumn();
   [[nodiscard]] Column *getColumn(ComponentId id);
   template <Component T>
   [[nodiscard]] const Column *getColumn() const;
   [[nodiscard]] const Column *getColumn(ComponentId id) const;
+
+private:
   template <Component T>
   Column&        getOrCreateColumn();
   inline Column& getOrCreateColumn(ComponentId id);
