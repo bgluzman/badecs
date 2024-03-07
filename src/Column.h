@@ -82,6 +82,26 @@ class Components {
 public:
   explicit Components(Column& column) : column_(column) {}
 
+  template <typename... Ts>
+  void emplace(EntityId entityId, Ts&&...args) {
+    return column_.emplace<T>(entityId, std::forward<Ts>(args)...);
+  }
+  void set(EntityId entityId, const T& value) {
+    return column_.set(entityId, value);
+  }
+  bool remove(EntityId entityId) { return column_.remove(entityId); }
+  [[nodiscard]] bool has(EntityId entityId) const noexcept {
+    return column_.has(entityId);
+  }
+  [[nodiscard]] std::any *get(EntityId entityId) {
+    return column_.get(entityId);
+  }
+  [[nodiscard]] const std::any *get(EntityId entityId) const {
+    return column_.get(entityId);
+  }
+
+  [[nodiscard]] std::size_t size() const noexcept { return column_.size(); }
+
   class Iter {
     using UnderlyingIter = std::map<EntityId, std::any>::iterator;
 
