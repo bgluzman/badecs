@@ -232,19 +232,20 @@ int main(int /*argc*/, char * /*argv*/[]) {
     auto col1 = queryWorld.getColumn<Name>();
     auto col2 = queryWorld.getColumn<Position>();
     auto col3 = queryWorld.getColumn<Player>();
-    for (auto [id, name, pos] : bad::View<Name, Position>({col1, col2})) {
+    for (auto [id, name, pos] :
+         bad::View<false, Name, Position>({col1, col2})) {
       std::cout << "[view] entity=" << id << ", name=" << name
                 << ", position=" << pos << '\n';
     }
-    for (auto [id, name] : bad::SortedView<Name>(col1)) {
+    for (auto [id, name] : bad::valueView<Name>({col1})) {
       std::cout << "[sortedview1] entity=" << id << ", name=" << name << '\n';
     }
-    for (auto [id, name, pos] : bad::SortedView<Name, Position>(col1, {col2})) {
+    for (auto [id, name, pos] : bad::valueView<Name, Position>({col1, col2})) {
       std::cout << "[sortedview2] entity=" << id << ", name=" << name
                 << ", position=" << pos << '\n';
     }
     for (auto [id, name, pos, _] :
-         bad::SortedView<Name, Position, Player>(col1, {col2, col3})) {
+         bad::refView<Name, Position, Player>({col1, col2, col3})) {
       std::cout << "[sortedview3] entity=" << id << ", name=" << name
                 << ", position=" << pos << '\n';
     }
