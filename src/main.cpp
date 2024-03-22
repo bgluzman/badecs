@@ -1,5 +1,6 @@
 #include "Commands.h"
 #include "Query.h"
+#include "View.h"
 #include "World.h"
 
 #include <cassert>

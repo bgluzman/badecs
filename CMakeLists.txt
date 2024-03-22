@@ -29,5 +29,7 @@ add_executable(badecs
         src/Commands.h
         src/Query.cpp
         src/Query.h
+        src/View.cpp
+        src/View.h
 )
 target_link_libraries(badecs PRIVATE Microsoft.GSL::GSL)
