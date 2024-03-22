@@ -163,7 +163,7 @@ public:
 
   public:
     using difference_type = std::ptrdiff_t;
-    using value_type = std::tuple<EntityId, Smallest&, Rest&...>;
+    using value_type = std::tuple<EntityId, Smallest, Rest...>;
     using pointer = void;
     using reference = value_type&;
     using iterator_category = std::forward_iterator_tag;
@@ -188,7 +188,8 @@ public:
     value_type operator*() const {
       auto helper = [this]<std::size_t... Is>(std::index_sequence<Is...>) {
         return value_type{it_->first, std::any_cast<Smallest&>(it_->second),
-                          *std::any_cast<Rest>(rest_[Is]->get(it_->first))...};
+                          *std::any_cast<std::remove_cvref_t<Rest>>(
+                              rest_[Is]->get(it_->first))...};
       };
       return helper(std::index_sequence_for<Rest...>{});
     }

@@ -244,7 +244,12 @@ int main(int /*argc*/, char * /*argv*/[]) {
                 << ", position=" << pos << '\n';
     }
     for (auto [id, name, pos, _] :
-         bad::SortedView<Name, Position, Player>(col1, {col2, col3})) {
+         bad::SortedView<Name, Position&, Player>(col1, {col2, col3})) {
+      std::cout << "[sortedview3] id:isRef="
+                << std::is_reference_v<decltype(id)> << ", name:isRef="
+                << std::is_reference_v<decltype(name)> << ", pos:isRef="
+                << std::is_reference_v<decltype(pos)> << ", player:isRef="
+                << std::is_reference_v<decltype(_)> << '\n';
       std::cout << "[sortedview3] entity=" << id << ", name=" << name
                 << ", position=" << pos << '\n';
     }
