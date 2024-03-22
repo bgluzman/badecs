@@ -37,7 +37,12 @@ public:
 
   template <Component Arg>
   [[nodiscard]] decltype(auto) entitiesWithComponent() const;
-  
+
+  template <Component T>
+  Components<T> components() {
+    return Components<T>(getOrCreateColumn<T>());
+  }
+
   template <Component T>
   [[nodiscard]] Column *getColumn();
   [[nodiscard]] Column *getColumn(ComponentId id);

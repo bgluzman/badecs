@@ -42,6 +42,10 @@ public:
   decltype(auto) entitiesWithComponent();
   decltype(auto) allEntities();
 
+  template <Component Arg>
+  auto components() {
+    return components_->components<Arg>();
+  }
   template <Component T>
   [[nodiscard]] Column *getColumn() {
     return components_->getColumn<T>();
