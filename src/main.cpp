@@ -236,15 +236,15 @@ int main(int /*argc*/, char * /*argv*/[]) {
       std::cout << "[view] entity=" << id << ", name=" << name
                 << ", position=" << pos << '\n';
     }
-    for (auto [id, name] : bad::SortedView<Name>(col1)) {
+    for (auto [id, name] : bad::View<Name>({col1})) {
       std::cout << "[sortedview1] entity=" << id << ", name=" << name << '\n';
     }
-    for (auto [id, name, pos] : bad::SortedView<Name, Position>(col1, {col2})) {
+    for (auto [id, name, pos] : bad::View<Name, Position>({col1, col2})) {
       std::cout << "[sortedview2] entity=" << id << ", name=" << name
                 << ", position=" << pos << '\n';
     }
     for (auto [id, name, pos, _] :
-         bad::SortedView<Name, Position&, Player>(col1, {col2, col3})) {
+         bad::View<Name, Position&, Player>({col1, col2, col3})) {
       std::cout << "[sortedview3] id:isRef="
                 << std::is_reference_v<decltype(id)> << ", name:isRef="
                 << std::is_reference_v<decltype(name)> << ", pos:isRef="
