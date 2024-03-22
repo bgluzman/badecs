@@ -230,22 +230,14 @@ int main(int /*argc*/, char * /*argv*/[]) {
     //      std::cout << "[as] entity=" << id << ", position=" << value << '\n';
     //    }
 
-    auto col1 = queryWorld.getColumn<Name>();
-    auto col2 = queryWorld.getColumn<Position>();
-    auto col3 = queryWorld.getColumn<Player>();
-    for (auto [id, name, pos] : bad::View<Name, Position>({col1, col2})) {
-      std::cout << "[view] entity=" << id << ", name=" << name
-                << ", position=" << pos << '\n';
-    }
-    for (auto [id, name] : bad::View<Name>({col1})) {
+    for (auto [id, name] : queryWorld.view<Name>()) {
       std::cout << "[sortedview1] entity=" << id << ", name=" << name << '\n';
     }
-    for (auto [id, name, pos] : bad::View<Name, Position>({col1, col2})) {
+    for (auto [id, name, pos] : queryWorld.view<Name, const Position&>()) {
       std::cout << "[sortedview2] entity=" << id << ", name=" << name
                 << ", position=" << pos << '\n';
     }
-    for (auto [id, name, pos, _] :
-         bad::View<Name, Position&, Player>({col1, col2, col3})) {
+    for (auto [id, name, pos, _] : queryWorld.view<Name, Position&, Player>()) {
       std::cout << "[sortedview3] id:isRef="
                 << std::is_reference_v<decltype(id)> << ", name:isRef="
                 << std::is_reference_v<decltype(name)> << ", pos:isRef="

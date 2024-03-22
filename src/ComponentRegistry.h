@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Column.h"
+#include "View.h"
 
 #include <any>
 #include <gsl/gsl>
@@ -34,6 +35,9 @@ public:
   [[nodiscard]] const T        *get(EntityId entity) const;
   [[nodiscard]] const std::any *get(EntityId    entityId,
                                     ComponentId component) const;
+
+  template <Component... Components>
+  [[nodiscard]] auto view();
 
   template <Component Arg>
   [[nodiscard]] decltype(auto) entitiesWithComponent() const;
@@ -160,6 +164,13 @@ inline const std::any *ComponentRegistry::get(EntityId    entity,
     return col->get(entity);
   }
   return nullptr;
+}
+
+template <Component... Components>
+auto ComponentRegistry::view() {
+  // TODO (bgluzman): need to change this to support const
+  return View<Components...>{std::array{gsl::make_not_null<Column *>(
+      &getOrCreateColumn<std::remove_cvref_t<Components>>())...}};
 }
 
 template <Component Arg>
