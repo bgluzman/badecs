@@ -246,6 +246,9 @@ int main(int /*argc*/, char * /*argv*/[]) {
       std::cout << "[sortedview3] entity=" << id << ", name=" << name
                 << ", position=" << pos << '\n';
     }
+    for (auto [id, name, _] : queryWorld.view<Name, std::complex<float>>()) {
+      std::cout << "[sortedview4] entity=" << id << ", name=" << name << '\n';
+    }
   }
 
   return 0;

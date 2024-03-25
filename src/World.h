@@ -40,6 +40,8 @@ public:
 
   template <Component... Components>
   [[nodiscard]] auto view();
+  template <Component... Components>
+  [[nodiscard]] auto view() const;
 
   template <Component Arg>
   decltype(auto) entitiesWithComponent();
@@ -124,6 +126,11 @@ const T *World::getComponent(EntityId entity) const {
 
 template <Component... Components>
 auto World::view() {
+  return components_->view<Components...>();
+}
+
+template <Component... Components>
+auto World::view() const {
   return components_->view<Components...>();
 }
 

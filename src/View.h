@@ -9,12 +9,18 @@ class View {
   static_assert(sizeof...(Ts) > 0, "View must have at least one component");
 
 public:
-  explicit View(std::array<gsl::not_null<Column *>, sizeof...(Ts)> columns)
-      : columns_(columns), minIdx_(0) {
-    auto minElem = std::min_element(
-        columns_.begin(), columns_.end(),
-        [](auto lhs, auto rhs) { return lhs->size() < rhs->size(); });
-    minIdx_ = std::distance(columns_.begin(), minElem);
+  explicit View(std::array<Column *, sizeof...(Ts)> columns)
+      : isEmptyMarker_(false), columns_(columns),
+        minIdx_(std::numeric_limits<std::size_t>::max()) {
+    if (std::any_of(columns_.begin(), columns_.end(),
+                    [](auto *col) { return !col || col->size() == 0; })) {
+      isEmptyMarker_ = true;
+    } else {
+      auto minElem = std::min_element(
+          columns_.begin(), columns_.end(),
+          [](auto lhs, auto rhs) { return lhs->size() < rhs->size(); });
+      minIdx_ = std::distance(columns_.begin(), minElem);
+    }
   }
 
   class Iterator {
@@ -27,8 +33,8 @@ public:
     using reference = value_type&;
     using iterator_category = std::forward_iterator_tag;
 
-    Iterator() : columns_(), it_() {}
-    explicit Iterator(std::array<gsl::not_null<Column *>, sizeof...(Ts)> cols,
+    Iterator() : columns_(), it_(), end_() {}
+    explicit Iterator(std::array<Column *, sizeof...(Ts)> cols,
                       UnderlyingIter it, UnderlyingIter end)
         : columns_(cols), it_(it), end_(end) {
       advance();
@@ -69,24 +75,31 @@ public:
       }
     }
 
-    std::array<gsl::not_null<Column *>, sizeof...(Ts)> columns_;
-    UnderlyingIter                                     it_;
-    UnderlyingIter                                     end_;
+    std::array<Column *, sizeof...(Ts)> columns_;
+    UnderlyingIter                      it_;
+    UnderlyingIter                      end_;
   };
   static_assert(std::forward_iterator<Iterator>);
 
   [[nodiscard]] Iterator begin() noexcept {
+    if (isEmptyMarker_) {
+      return Iterator();
+    }
     return Iterator(columns_, columns_[minIdx_]->begin(),
                     columns_[minIdx_]->end());
   }
   [[nodiscard]] Iterator end() noexcept {
+    if (isEmptyMarker_) {
+      return Iterator();
+    }
     return Iterator(columns_, columns_[minIdx_]->end(),
                     columns_[minIdx_]->end());
   }
 
 private:
-  std::array<gsl::not_null<Column *>, sizeof...(Ts)>            columns_;
-  std::array<gsl::not_null<Column *>, sizeof...(Ts)>::size_type minIdx_;
+  bool                                           isEmptyMarker_;
+  std::array<Column *, sizeof...(Ts)>            columns_;
+  std::array<Column *, sizeof...(Ts)>::size_type minIdx_;
 };
 
 }  // namespace bad

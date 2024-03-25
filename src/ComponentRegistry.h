@@ -38,6 +38,8 @@ public:
 
   template <Component... Components>
   [[nodiscard]] auto view();
+  template <Component... Components>
+  [[nodiscard]] auto view() const;
 
   template <Component Arg>
   [[nodiscard]] decltype(auto) entitiesWithComponent() const;
@@ -168,9 +170,14 @@ inline const std::any *ComponentRegistry::get(EntityId    entity,
 
 template <Component... Components>
 auto ComponentRegistry::view() {
-  // TODO (bgluzman): need to change this to support const
-  return View<Components...>{std::array{gsl::make_not_null<Column *>(
-      &getOrCreateColumn<std::remove_cvref_t<Components>>())...}};
+  return View<Components...>{
+      std::array{getColumn<std::remove_cvref_t<Components>>()...}};
+}
+
+template <Component... Components>
+auto ComponentRegistry::view() const {
+  return View<Components...>{
+      std::array{getColumn<std::remove_cvref_t<Components>>()...}};
 }
 
 template <Component Arg>
