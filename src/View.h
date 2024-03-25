@@ -26,6 +26,9 @@ struct Filter<> {
 };
 
 template <Component... Ts>
+inline constexpr Filter<Ts...> filter{};
+
+template <Component... Ts>
 class View {
   static_assert(sizeof...(Ts) > 0, "View must have at least one component");
 

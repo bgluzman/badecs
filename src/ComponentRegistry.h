@@ -196,7 +196,7 @@ void ComponentRegistry::addFiltersToView(View& view, Filter) {
       view.addFilter(getColumn<Head>());
   }
   if constexpr (!std::is_same_v<Tail, void>) {
-    addFiltersToView<View, Tail>(view);
+    addFiltersToView(view, Tail{});
   }
 }
 

@@ -249,13 +249,17 @@ int main(int /*argc*/, char * /*argv*/[]) {
     for (auto [id, name, _] : queryWorld.view<Name, std::complex<float>>()) {
       std::cout << "[sortedview4] entity=" << id << ", name=" << name << '\n';
     }
-    for (auto [id, name] : queryWorld.view<Name>(bad::Filter<>{})) {
+    std::cout << "---" << std::endl;
+    queryWorld.emplaceComponent<Tag>(building);
+    for (auto [id, name] : queryWorld.view<Name>(bad::filter<>)) {
       std::cout << "[sortedview5] entity=" << id << ", name=" << name << '\n';
     }
-    std::cout << "---" << std::endl;
-    for (auto [id, name] :
-         queryWorld.view<Name>(bad::Filter<MoveIntention>{})) {
+    for (auto [id, name] : queryWorld.view<Name>(bad::filter<MoveIntention>)) {
       std::cout << "[sortedview6] entity=" << id << ", name=" << name << '\n';
+    }
+    for (auto [id, name] :
+         queryWorld.view<Name>(bad::filter<MoveIntention, Tag>)) {
+      std::cout << "[sortedview7] entity=" << id << ", name=" << name << '\n';
     }
   }
 
