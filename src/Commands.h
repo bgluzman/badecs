@@ -13,6 +13,7 @@ class Commands {
 
 public:
   explicit Commands(gsl::not_null<World *> world);
+  ~Commands() noexcept;
 
   EntityId create();
   void     destroy(EntityId entity);
@@ -34,6 +35,14 @@ private:
 };
 
 inline Commands::Commands(gsl::not_null<World *> world) : world_(world) {}
+
+inline Commands::~Commands() noexcept try {
+  execute();
+} catch (const std::exception& err) {
+  std::cerr << "error destroying Commands: " << err.what() << std::endl;
+} catch (...) {
+  std::cerr << "unknown error destroying Commands" << std::endl;
+}
 
 inline EntityId Commands::create() {
   EntityId entity = world_->reserve();
