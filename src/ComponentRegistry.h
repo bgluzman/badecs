@@ -36,10 +36,10 @@ public:
   [[nodiscard]] const std::any *get(EntityId    entityId,
                                     ComponentId component) const;
 
-  template <Component... Components>
-  [[nodiscard]] auto view();
-  template <Component... Components>
-  [[nodiscard]] auto view() const;
+  template <Component... Components, typename Filters>
+  [[nodiscard]] auto view(Filters = Filter<>{});
+  template <Component... Components, typename Filters>
+  [[nodiscard]] auto view(Filters = Filter<>{}) const;
 
   template <Component Arg>
   [[nodiscard]] decltype(auto) entitiesWithComponent() const;
@@ -55,6 +55,9 @@ private:
   template <Component T>
   Column&        getOrCreateColumn();
   inline Column& getOrCreateColumn(ComponentId id);
+
+  template <typename View, typename Filter>
+  void addFiltersToView(View& view, Filter);
 
   static inline ComponentId kComponentIdCounter = 1;
   // XXX: std::unordered_map's semantics are important here! See similar note
@@ -168,16 +171,33 @@ inline const std::any *ComponentRegistry::get(EntityId    entity,
   return nullptr;
 }
 
-template <Component... Components>
-auto ComponentRegistry::view() {
-  return View<Components...>{
+template <Component... Components, typename Filters>
+auto ComponentRegistry::view(Filters) {
+  View<Components...> view{
       std::array{getColumn<std::remove_cvref_t<Components>>()...}};
+  addFiltersToView(view, Filters{});
+  return view;
 }
 
-template <Component... Components>
-auto ComponentRegistry::view() const {
-  return View<Components...>{
+template <Component... Components, typename Filters>
+auto ComponentRegistry::view(Filters) const {
+  View<Components...> view{
       std::array{getColumn<std::remove_cvref_t<Components>>()...}};
+  addFiltersToView(view, Filters{});
+  return view;
+}
+
+template <typename View, typename Filter>
+void ComponentRegistry::addFiltersToView(View& view, Filter) {
+  using Head = typename Filter::Head;
+  using Tail = typename Filter::Tail;
+  if constexpr (!std::is_same_v<Head, void>) {
+    if (auto *col = getColumn<Head>(); col != nullptr)
+      view.addFilter(getColumn<Head>());
+  }
+  if constexpr (!std::is_same_v<Tail, void>) {
+    addFiltersToView<View, Tail>(view);
+  }
 }
 
 template <Component Arg>

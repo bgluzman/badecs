@@ -38,10 +38,10 @@ public:
   template <Component T>
   [[nodiscard]] const T *getComponent(EntityId entity) const;
 
-  template <Component... Components>
-  [[nodiscard]] auto view();
-  template <Component... Components>
-  [[nodiscard]] auto view() const;
+  template <Component... Components, typename Filters = Filter<>>
+  [[nodiscard]] auto view(Filters = Filter<>{});
+  template <Component... Components, typename Filters = Filter<>>
+  [[nodiscard]] auto view(Filters = Filter<>{}) const;
 
   template <Component Arg>
   decltype(auto) entitiesWithComponent();
@@ -124,14 +124,14 @@ const T *World::getComponent(EntityId entity) const {
   return components_->get<T>(entity);
 }
 
-template <Component... Components>
-auto World::view() {
-  return components_->view<Components...>();
+template <Component... Components, typename Filters>
+auto World::view(Filters filters) {
+  return components_->view<Components...>(filters);
 }
 
-template <Component... Components>
-auto World::view() const {
-  return components_->view<Components...>();
+template <Component... Components, typename Filters>
+auto World::view(Filters filters) const {
+  return components_->view<Components...>(filters);
 }
 
 template <Component Arg>

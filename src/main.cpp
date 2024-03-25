@@ -249,6 +249,14 @@ int main(int /*argc*/, char * /*argv*/[]) {
     for (auto [id, name, _] : queryWorld.view<Name, std::complex<float>>()) {
       std::cout << "[sortedview4] entity=" << id << ", name=" << name << '\n';
     }
+    for (auto [id, name] : queryWorld.view<Name>(bad::Filter<>{})) {
+      std::cout << "[sortedview5] entity=" << id << ", name=" << name << '\n';
+    }
+    std::cout << "---" << std::endl;
+    for (auto [id, name] :
+         queryWorld.view<Name>(bad::Filter<MoveIntention>{})) {
+      std::cout << "[sortedview6] entity=" << id << ", name=" << name << '\n';
+    }
   }
 
   return 0;
