@@ -77,8 +77,16 @@ void Commands::removeComponent(EntityId entity) {
 }
 
 inline void Commands::execute() {
-  for (const Command& command : commands_) {
-    command(world_.get());
+  std::ptrdiff_t i = 0;
+  try {
+    for (; i != commands_.size(); ++i) {
+      commands_[i](world_.get());
+    }
+  } catch (...) {
+    // Ensures that repeated calls do not execute the same commands.
+    // Add +1 here to ensure the command that threw is not executed again.
+    commands_.erase(commands_.begin(), commands_.begin() + i + 1);
+    throw;
   }
   commands_.clear();
 }
