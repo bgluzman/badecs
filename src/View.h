@@ -40,7 +40,6 @@ public:
                     [](auto col) { return !col || col->size() == 0; })) {
       isEmptyMarker_ = true;
     } else {
-      std::copy(columns.begin(), columns.end(), columns_.begin());
       auto minElem = std::min_element(
           columns_.begin(), columns_.end(),
           [](auto lhs, auto rhs) { return lhs->size() < rhs->size(); });
