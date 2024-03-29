@@ -39,28 +39,13 @@ public:
   [[nodiscard]] const T *getComponent(EntityId entity) const;
 
   template <Component... Components, typename Filters = Filter<>>
-  [[nodiscard]] auto view(Filters = Filter<>{});
+  [[nodiscard]] auto view(Filters = filter<>);
   template <Component... Components, typename Filters = Filter<>>
-  [[nodiscard]] auto view(Filters = Filter<>{}) const;
+  [[nodiscard]] auto view(Filters = filter<>) const;
 
   template <Component Arg>
   decltype(auto) entitiesWithComponent();
   decltype(auto) allEntities();
-
-  template <Component T>
-  [[nodiscard]] Column *getColumn() {
-    return components_->getColumn<T>();
-  }
-  [[nodiscard]] Column *getColumn(ComponentId id) {
-    return components_->getColumn(id);
-  }
-  template <Component T>
-  [[nodiscard]] const Column *getColumn() const {
-    return components_->getColumn<T>();
-  }
-  [[nodiscard]] const Column *getColumn(ComponentId id) const {
-    return components_->getColumn(id);
-  }
 
 private:
   std::unique_ptr<EntityRegistry> entities_ =

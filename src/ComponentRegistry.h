@@ -37,13 +37,14 @@ public:
                                     ComponentId component) const;
 
   template <Component... Components, typename Filters>
-  [[nodiscard]] auto view(Filters = Filter<>{});
+  [[nodiscard]] auto view(Filters = filter<>);
   template <Component... Components, typename Filters>
-  [[nodiscard]] auto view(Filters = Filter<>{}) const;
+  [[nodiscard]] auto view(Filters = filter<>) const;
 
   template <Component Arg>
   [[nodiscard]] decltype(auto) entitiesWithComponent() const;
 
+private:
   template <Component T>
   [[nodiscard]] Column *getColumn();
   [[nodiscard]] Column *getColumn(ComponentId id);
@@ -51,7 +52,6 @@ public:
   [[nodiscard]] const Column *getColumn() const;
   [[nodiscard]] const Column *getColumn(ComponentId id) const;
 
-private:
   template <Component T>
   Column&        getOrCreateColumn();
   inline Column& getOrCreateColumn(ComponentId id);
