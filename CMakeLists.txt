@@ -13,8 +13,8 @@ FetchContent_Declare(GSL
 )
 FetchContent_MakeAvailable(GSL)
 
-add_executable(badecs
-        src/main.cpp
+add_library(badecs
+        SHARED
         src/World.h
         src/World.cpp
         src/Common.h
@@ -32,4 +32,9 @@ add_executable(badecs
         src/View.cpp
         src/View.h
 )
-target_link_libraries(badecs PRIVATE Microsoft.GSL::GSL)
+target_link_libraries(badecs PUBLIC Microsoft.GSL::GSL)
+
+add_executable(badecs_main
+        src/main.cpp
+)
+target_link_libraries(badecs_main PRIVATE badecs)
