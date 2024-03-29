@@ -26,12 +26,8 @@ public:
 
   [[nodiscard]] decltype(auto) getEntityIds() const;
 
-  auto                     begin() noexcept { return components_.begin(); }
-  auto                     end() noexcept { return components_.end(); }
-  [[nodiscard]] const auto cbegin() const noexcept {
-    return components_.cbegin();
-  }
-  [[nodiscard]] const auto cend() const noexcept { return components_.cend(); }
+  auto begin() noexcept { return components_.begin(); }
+  auto end() noexcept { return components_.end(); }
 
 private:
   // XXX: std::map's pointer/reference invalidation semantics here are
