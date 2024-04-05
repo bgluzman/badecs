@@ -32,6 +32,7 @@ inline constexpr Filter<Ts...> filter{};
 
 template <Component... Ts>
 class View {
+  using ColumnArray = std::array<Column *, sizeof...(Ts)>;
   static_assert(sizeof...(Ts) > 0, "View must have at least one component");
 
 public:
@@ -62,9 +63,8 @@ public:
     using iterator_category = std::forward_iterator_tag;
 
     Iterator() : columns_(), filters_(), it_(), end_() {}
-    Iterator(std::array<Column *, sizeof...(Ts)>  cols,
-             std::vector<gsl::not_null<Column *>> filters, UnderlyingIter it,
-             UnderlyingIter end)
+    Iterator(ColumnArray cols, std::vector<gsl::not_null<Column *>> filters,
+             UnderlyingIter it, UnderlyingIter end)
         : columns_(cols), filters_(std::move(filters)), it_(it), end_(end) {
       advance();
     }
@@ -106,7 +106,7 @@ public:
       }
     }
 
-    std::array<Column *, sizeof...(Ts)>  columns_;
+    ColumnArray                          columns_;
     std::vector<gsl::not_null<Column *>> filters_;
     UnderlyingIter                       it_;
     UnderlyingIter                       end_;
@@ -129,10 +129,10 @@ public:
   }
 
 private:
-  bool                                           isEmptyMarker_;
-  std::array<Column *, sizeof...(Ts)>            columns_;
-  std::array<Column *, sizeof...(Ts)>::size_type minIdx_;
-  std::vector<gsl::not_null<Column *>>           filters_ = {};
+  bool                                 isEmptyMarker_;
+  ColumnArray                          columns_;
+  typename ColumnArray::size_type      minIdx_;
+  std::vector<gsl::not_null<Column *>> filters_ = {};
 };
 
 }  // namespace bad
