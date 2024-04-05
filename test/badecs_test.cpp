@@ -69,4 +69,40 @@ TEST(ColumnTest, EmplaceAndGet) {
   EXPECT_TRUE(TestColumnValue(const_column, 1, 3));
 }
 
+TEST(ColumnTest, SetAndGet) {
+  Column column;
+  const Column &const_column = column;
+
+  ASSERT_EQ(column.size(), 0);
+  ASSERT_EQ(column.has(0), false);
+  EXPECT_EQ(column.get(0), nullptr);
+
+  // Initial set.
+  column.set(0, 1);
+  EXPECT_EQ(column.has(0), true);
+  EXPECT_EQ(column.size(), 1);
+  // Check that the value was set.
+  EXPECT_TRUE(TestColumnValue(column, 0, 1));
+  EXPECT_TRUE(TestColumnValue(const_column, 0, 1));
+
+  // Re-set.
+  column.set(0, 2);
+  EXPECT_EQ(column.has(0), true);
+  EXPECT_EQ(column.size(), 1);
+  // Check that the previous value was overwritten.
+  EXPECT_TRUE(TestColumnValue(column, 0, 2));
+  EXPECT_TRUE(TestColumnValue(const_column, 0, 2));
+
+  // Additional set.
+  column.set(1, 3);
+  EXPECT_EQ(column.has(1), true);
+  EXPECT_EQ(column.size(), 2);
+  // Check that the previous value was not overwritten.
+  EXPECT_TRUE(TestColumnValue(column, 0, 2));
+  EXPECT_TRUE(TestColumnValue(const_column, 0, 2));
+  // Check that new value was emplaced.
+  EXPECT_TRUE(TestColumnValue(column, 1, 3));
+  EXPECT_TRUE(TestColumnValue(const_column, 1, 3));
+}
+
 } // namespace bad::internal
