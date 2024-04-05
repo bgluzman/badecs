@@ -2,6 +2,8 @@
 
 #include "Column.h"
 
+#include <limits>
+
 namespace bad {
 
 template <Component... Ts>
