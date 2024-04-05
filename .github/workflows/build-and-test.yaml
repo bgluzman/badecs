@@ -45,10 +45,13 @@ jobs:
         exclude:
           - os: windows-latest
             c_compiler: gcc
+            gcc: g++-13
           - os: windows-latest
             c_compiler: clang
+            clang: 15
           - os: macos-latest
             c_compiler: gcc
+            gcc: g++-13
           - os: macos-latest
             c_compiler: cl
           - os: ubuntu-latest
