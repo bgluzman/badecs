@@ -1,7 +1,7 @@
 #ifndef BADECS_REGISTRY_H
 #define BADECS_REGISTRY_H
 
-namespace badecs {
+namespace bad {
 
 /// @brief The top-level registry of entity-component relationship.
 ///
@@ -13,6 +13,6 @@ public:
   int stub() const { return 42; }
 };
 
-} // namespace badecs
+} // namespace bad
 
 #endif // BADECS_REGISTRY_H

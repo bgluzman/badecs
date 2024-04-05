@@ -2,11 +2,11 @@
 
 #include <gtest/gtest.h>
 
-namespace badecs {
+namespace bad {
 
 TEST(RegistryTest, Stub) {
   Registry registry;
   EXPECT_EQ(registry.stub(), 42);
 }
 
-} // namespace badecs
+} // namespace bad
