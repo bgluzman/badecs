@@ -32,8 +32,7 @@ jobs:
             cpp_compiler: cl
           - os: macos-latest
             c_compiler: clang
-            cpp_compiler: clang++
-            version: 15
+            cpp_compiler: $(brew --prefix llvm@15)/bin/clang
           # - os: ubuntu-latest
           #   cpp_compiler: clang++
           #   clang: 15
