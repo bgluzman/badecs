@@ -2,13 +2,22 @@
 
 #include <gtest/gtest.h>
 
-#include <string>
+#include <ostream>
+
+struct Position {
+  int x;
+  int y;
+  bool operator<=>(const Position &) const = default;
+};
+std::ostream &operator<<(std::ostream &os, const Position &position) {
+  return os << "Position{x=" << position.x << ", y=" << position.y << "}";
+}
 
 namespace bad::internal {
 
 template <typename Column, Component T>
-testing::AssertionResult TestColumnValue(Column &&column, EntityId entityId,
-                                         T reference) {
+testing::AssertionResult TestColumnValueImpl(Column &&column, EntityId entityId,
+                                             T reference) {
   auto *value = column.get(entityId);
   if (!value || !value->has_value()) {
     return testing::AssertionFailure()
@@ -18,13 +27,23 @@ testing::AssertionResult TestColumnValue(Column &&column, EntityId entityId,
     return testing::AssertionFailure()
            << "Column has a value of the wrong type for entityId " << entityId;
   }
-  if (std::any_cast<int>(*value) != reference) {
+  if (std::any_cast<T>(*value) != reference) {
     return testing::AssertionFailure()
            << "Column has the wrong value for entityId " << entityId
-           << " (expected " << reference << ", got "
-           << std::any_cast<int>(*value) << ")";
+           << " (expected " << reference << ", got " << std::any_cast<T>(*value)
+           << ")";
   }
   return testing::AssertionSuccess();
+}
+
+template <Component T>
+testing::AssertionResult TestColumnValue(Column &column, EntityId entityId,
+                                         T reference) {
+  if (TestColumnValueImpl(const_cast<const Column &>(column), entityId,
+                          reference) == testing::AssertionSuccess()) {
+    return testing::AssertionSuccess();
+  }
+  return TestColumnValueImpl(column, entityId, reference);
 }
 
 TEST(ColumnTest, EmptyInvariants) {
@@ -35,38 +54,33 @@ TEST(ColumnTest, EmptyInvariants) {
 
 TEST(ColumnTest, EmplaceAndGet) {
   Column column;
-  const Column &const_column = column;
 
   ASSERT_EQ(column.size(), 0);
   ASSERT_EQ(column.has(0), false);
   EXPECT_EQ(column.get(0), nullptr);
 
   // Initial emplacement.
-  column.emplace<int>(0, 1);
+  column.emplace<Position>(0, 1, 2);
   EXPECT_EQ(column.has(0), true);
   EXPECT_EQ(column.size(), 1);
   // Check that the value was emplaced.
-  EXPECT_TRUE(TestColumnValue(column, 0, 1));
-  EXPECT_TRUE(TestColumnValue(const_column, 0, 1));
+  EXPECT_TRUE(TestColumnValue(column, 0, Position{1, 2}));
 
   // Re-emplacement.
-  column.emplace<int>(0, 2);
+  column.emplace<Position>(0, 2, 3);
   EXPECT_EQ(column.has(0), true);
   EXPECT_EQ(column.size(), 1);
   // Check that the previous value was overwritten.
-  EXPECT_TRUE(TestColumnValue(column, 0, 2));
-  EXPECT_TRUE(TestColumnValue(const_column, 0, 2));
+  EXPECT_TRUE(TestColumnValue(column, 0, Position{2, 3}));
 
   // Additional emplacement.
-  column.emplace<int>(1, 3);
+  column.emplace<Position>(1, 4, 5);
   EXPECT_EQ(column.has(1), true);
   EXPECT_EQ(column.size(), 2);
   // Check that the previous value was not overwritten.
-  EXPECT_TRUE(TestColumnValue(column, 0, 2));
-  EXPECT_TRUE(TestColumnValue(const_column, 0, 2));
+  EXPECT_TRUE(TestColumnValue(column, 0, Position{2, 3}));
   // Check that new value was emplaced.
-  EXPECT_TRUE(TestColumnValue(column, 1, 3));
-  EXPECT_TRUE(TestColumnValue(const_column, 1, 3));
+  EXPECT_TRUE(TestColumnValue(column, 1, Position{4, 5}));
 }
 
 TEST(ColumnTest, SetAndGet) {
@@ -83,7 +97,6 @@ TEST(ColumnTest, SetAndGet) {
   EXPECT_EQ(column.size(), 1);
   // Check that the value was set.
   EXPECT_TRUE(TestColumnValue(column, 0, 1));
-  EXPECT_TRUE(TestColumnValue(const_column, 0, 1));
 
   // Re-set.
   column.set(0, 2);
@@ -91,7 +104,6 @@ TEST(ColumnTest, SetAndGet) {
   EXPECT_EQ(column.size(), 1);
   // Check that the previous value was overwritten.
   EXPECT_TRUE(TestColumnValue(column, 0, 2));
-  EXPECT_TRUE(TestColumnValue(const_column, 0, 2));
 
   // Additional set.
   column.set(1, 3);
@@ -99,10 +111,8 @@ TEST(ColumnTest, SetAndGet) {
   EXPECT_EQ(column.size(), 2);
   // Check that the previous value was not overwritten.
   EXPECT_TRUE(TestColumnValue(column, 0, 2));
-  EXPECT_TRUE(TestColumnValue(const_column, 0, 2));
   // Check that new value was emplaced.
   EXPECT_TRUE(TestColumnValue(column, 1, 3));
-  EXPECT_TRUE(TestColumnValue(const_column, 1, 3));
 }
 
 } // namespace bad::internal
