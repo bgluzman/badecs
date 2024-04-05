@@ -17,15 +17,21 @@ class Column {
 
 public:
   /// Emplace-constructs a component of type T for the given entity.
+  /// \tparam T The type of the component to construct.
+  /// \tparam Args The types of the arguments to pass to the constructor of T.
+  /// \param entityId The entity to associate with the component.
+  /// \param args The arguments to pass to the constructor of T.
   template <Component T, typename... Args>
   void emplace(EntityId entityId, Args &&...args) {
     components_[entityId] =
         std::any(std::in_place_type<T>, std::forward<Args>(args)...);
   }
 
-  // TODO (bgluzman): docstring
-  void set(EntityId /*entityId*/, std::any /*value*/) {
-    // TODO (bgluzman): implement
+  /// Sets the component for the given entity to the given value.
+  /// \param entityId The entity to associate with the component.
+  /// \param value The new value for the component.
+  void set(EntityId entityId, std::any value) {
+    components_[entityId] = std::move(value);
   }
 
   // TODO (bgluzman): docstring
@@ -42,11 +48,13 @@ public:
   // TODO (bgluzman): docstring
   [[nodiscard]] std::any *get(EntityId /*entityId*/) {
     // TODO (bgluzman): implement
+    return nullptr;
   }
 
   // TODO (bgluzman): docstring
   [[nodiscard]] const std::any *get(EntityId /*entityId*/) const {
     // TODO (bgluzman): implement
+    return nullptr;
   }
 
   /// Returns the number of components stored in this column.
