@@ -8,14 +8,19 @@
 
 namespace bad::internal {
 
-// TODO (bgluzman): docstring
+/// \brief Entity-indexed storage of components sharing the same type.
+///
+/// This class erases the type of the components stored in it. The user is then
+/// responsible for extracting the components into their original type. This
+/// allows us to treat a collection of columns of different types uniformly.
 class Column {
 
 public:
-  // TODO (bgluzman): docstring
-  template <Component T, typename... Ts>
-  void emplace(EntityId /*entityId*/, Ts &&.../*args*/) {
-    // TODO (bgluzman): implement
+  /// Emplace-constructs a component of type T for the given entity.
+  template <Component T, typename... Args>
+  void emplace(EntityId entityId, Args &&...args) {
+    components_[entityId] =
+        std::any(std::in_place_type<T>, std::forward<Args>(args)...);
   }
 
   // TODO (bgluzman): docstring
@@ -29,10 +34,9 @@ public:
     return false;
   }
 
-  // TODO (bgluzman): docstring
-  [[nodiscard]] bool has(EntityId /*entityId*/) const noexcept {
-    // TODO (bgluzman): implement
-    return false;
+  /// Returns true if a component for the given entity exists in this column.
+  [[nodiscard]] bool has(EntityId entityId) const noexcept {
+    return components_.count(entityId) > 0;
   }
 
   // TODO (bgluzman): docstring
@@ -45,11 +49,8 @@ public:
     // TODO (bgluzman): implement
   }
 
-  // TODO (bgluzman): docstring
-  [[nodiscard]] std::size_t size() const noexcept {
-    // TODO (bgluzman): implement
-    return 0;
-  }
+  /// Returns the number of components stored in this column.
+  [[nodiscard]] std::size_t size() const noexcept { return components_.size(); }
 
   // TODO (bgluzman): docstring
   [[nodiscard]] auto begin() noexcept { return components_.begin(); }
