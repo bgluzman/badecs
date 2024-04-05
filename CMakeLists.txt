@@ -37,8 +37,6 @@ add_library(badecs
         src/EntityRegistry.h
         src/Commands.cpp
         src/Commands.h
-        src/Query.cpp
-        src/Query.h
         src/View.cpp
         src/View.h
 )

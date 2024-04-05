@@ -4,7 +4,6 @@
 
 #include <map>
 #include <optional>
-#include <ranges>
 #include <unordered_set>
 
 namespace bad {
@@ -19,9 +18,7 @@ public:
 
   void addComponent(EntityId entity, ComponentId component);
   void removeComponent(EntityId entity, ComponentId component);
-
-  [[nodiscard]] decltype(auto) entities() const;
-
+  
 private:
   EntityId                                            entity_counter_ = 1;
   std::map<EntityId, std::unordered_set<ComponentId>> entities_ = {};
@@ -60,10 +57,6 @@ inline void EntityRegistry::removeComponent(EntityId    entity,
                                             ComponentId component) {
   if (has(entity))
     entities_[entity].erase(component);
-}
-
-inline decltype(auto) EntityRegistry::entities() const {
-  return entities_ | std::views::keys;
 }
 
 }  // namespace bad

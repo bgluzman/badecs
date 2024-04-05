@@ -7,7 +7,6 @@
 #include <gsl/gsl>
 #include <map>
 #include <memory>
-#include <ranges>
 #include <vector>
 
 namespace bad {
@@ -23,8 +22,6 @@ public:
   [[nodiscard]] const std::any *get(EntityId entityId) const;
 
   [[nodiscard]] std::size_t size() const noexcept;
-
-  [[nodiscard]] decltype(auto) getEntityIds() const;
 
   auto begin() noexcept { return components_.begin(); }
   auto end() noexcept { return components_.end(); }
@@ -69,9 +66,5 @@ inline const std::any *Column::get(EntityId entityId) const {
 }
 
 inline std::size_t Column::size() const noexcept { return components_.size(); }
-
-inline decltype(auto) Column::getEntityIds() const {
-  return components_ | std::views::keys;
-}
 
 }  // namespace bad

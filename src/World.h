@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <gsl/gsl>
 #include <iostream>
-#include <ranges>
 #include <set>
 #include <type_traits>
 #include <unordered_map>
@@ -43,10 +42,6 @@ public:
   [[nodiscard]] auto view(Filters = filter<>);
   template <Component... Components, typename Filters = Filter<>>
   [[nodiscard]] auto view(Filters = filter<>) const;
-
-  template <Component Arg>
-  decltype(auto) entitiesWithComponent();
-  decltype(auto) allEntities();
 
 private:
   std::unique_ptr<EntityRegistry> entities_ =
@@ -119,12 +114,5 @@ template <Component... Components, typename Filters>
 auto World::view(Filters filters) const {
   return components_->view<Components...>(filters);
 }
-
-template <Component Arg>
-decltype(auto) World::entitiesWithComponent() {
-  return components_->entitiesWithComponent<Arg>();
-}
-
-inline decltype(auto) World::allEntities() { return entities_->entities(); }
 
 }  // namespace bad

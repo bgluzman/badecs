@@ -5,7 +5,6 @@
 
 #include <any>
 #include <gsl/gsl>
-#include <ranges>
 #include <set>
 #include <unordered_map>
 
@@ -40,9 +39,6 @@ public:
   [[nodiscard]] auto view(Filters = filter<>);
   template <Component... Components, typename Filters>
   [[nodiscard]] auto view(Filters = filter<>) const;
-
-  template <Component Arg>
-  [[nodiscard]] decltype(auto) entitiesWithComponent() const;
 
 private:
   template <Component T>
@@ -198,16 +194,6 @@ void ComponentRegistry::addFiltersToView(View& view, Filter) {
   if constexpr (!std::is_same_v<Tail, void>) {
     addFiltersToView(view, Tail{});
   }
-}
-
-template <Component Arg>
-decltype(auto) ComponentRegistry::entitiesWithComponent() const {
-  const Column *col = getColumn<Arg>();
-  if (!col) {
-    const static std::map<EntityId, std::any> kEmptySet;
-    return kEmptySet | std::views::keys;
-  }
-  return col->getEntityIds();
 }
 
 }  // namespace bad
