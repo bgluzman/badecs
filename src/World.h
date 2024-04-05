@@ -17,6 +17,7 @@
 
 namespace bad {
 
+/// @brief This is a test of Doxygen.
 class World {
 public:
   EntityId           create();

@@ -56,3 +56,12 @@ add_executable(badecs_test
 target_link_libraries(badecs_test PRIVATE badecs gtest_main)
 include(GoogleTest)
 gtest_discover_tests(badecs_test)
+
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    doxygen_add_docs(
+            docs
+            src
+            COMMENT "Generate documentation"
+    )
+endif (DOXYGEN_FOUND)
