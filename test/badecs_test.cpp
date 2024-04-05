@@ -85,7 +85,6 @@ TEST(ColumnTest, EmplaceAndGet) {
 
 TEST(ColumnTest, SetAndGet) {
   Column column;
-  const Column &const_column = column;
 
   ASSERT_EQ(column.size(), 0);
   ASSERT_EQ(column.has(0), false);
