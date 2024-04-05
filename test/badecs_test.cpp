@@ -1,12 +1,16 @@
-#include <badecs/Registry.h>
+#include <badecs/internal/Column.h>
 
 #include <gtest/gtest.h>
 
-namespace bad {
+namespace bad::internal {
 
-TEST(RegistryTest, Stub) {
-  Registry registry;
-  EXPECT_EQ(registry.stub(), 42);
+TEST(ColumnTest, EmplaceTest) {
+  Column column;
+  ASSERT_EQ(column.size(), 0);
+  EXPECT_EQ(column.has(0), false);
+  column.emplace<int>(0, 1);
+  EXPECT_EQ(column.has(0), true);
+  EXPECT_EQ(column.size(), 1);
 }
 
-} // namespace bad
+} // namespace bad::internal
