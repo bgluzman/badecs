@@ -23,8 +23,15 @@ FetchContent_Declare(googletest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
+# TODO (bgluzman): make configurable
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(BADECS_LINKAGE SHARED)
+else ()
+    set(BADECS_LINKAGE STATIC)
+endif ()
+
 add_library(badecs
-        SHARED
+        ${BADECS_LINKAGE}
         src/World.h
         src/World.cpp
         src/Common.h
