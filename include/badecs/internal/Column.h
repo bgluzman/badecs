@@ -41,20 +41,28 @@ public:
   }
 
   /// Returns true if a component for the given entity exists in this column.
+  /// \param entityId The entity to check.
   [[nodiscard]] bool has(EntityId entityId) const noexcept {
     return components_.count(entityId) > 0;
   }
 
-  // TODO (bgluzman): docstring
-  [[nodiscard]] std::any *get(EntityId /*entityId*/) {
-    // TODO (bgluzman): implement
-    return nullptr;
+  /// Returns a pointer to the component for the given entity, or nullptr if no
+  /// such component exists.
+  /// \param entityId The entity for which we are fetching the component.
+  [[nodiscard]] std::any *get(EntityId entityId) {
+    return const_cast<std::any *>(
+        const_cast<const Column *>(this)->get(entityId));
   }
 
-  // TODO (bgluzman): docstring
-  [[nodiscard]] const std::any *get(EntityId /*entityId*/) const {
-    // TODO (bgluzman): implement
-    return nullptr;
+  /// Returns a pointer to the component for the given entity, or nullptr if no
+  /// such component exists.
+  /// \param entityId The entity for which we are fetching the component.
+  [[nodiscard]] const std::any *get(EntityId entityId) const {
+    if (auto it = components_.find(entityId); it != components_.end()) {
+      return &it->second;
+    } else {
+      return nullptr;
+    }
   }
 
   /// Returns the number of components stored in this column.
