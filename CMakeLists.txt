@@ -54,7 +54,7 @@ find_package(Doxygen)
 if (DOXYGEN_FOUND)
     doxygen_add_docs(
             docs
-            src
+            include
             COMMENT "Generate documentation"
     )
 endif (DOXYGEN_FOUND)
