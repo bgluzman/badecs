@@ -47,6 +47,21 @@ target_link_libraries(
         badecs
         gtest_main
 )
+target_compile_options(
+        badecs_test
+        PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Werror
+        -fprofile-arcs
+        -ftest-coverage
+)
+target_link_options(
+        badecs_test
+        PRIVATE
+        --coverage
+)
 include(GoogleTest)
 gtest_discover_tests(badecs_test)
 
