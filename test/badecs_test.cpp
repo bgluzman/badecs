@@ -1,4 +1,5 @@
 #include <badecs/internal/Column.h>
+#include <badecs/internal/Components.h>
 #include <gtest/gtest.h>
 #include <map>
 #include <ostream>
@@ -15,8 +16,8 @@ std::ostream& operator<<(std::ostream& os, const Position& position) {
 namespace bad::internal {
 
 template <typename T>
-testing::AssertionResult TestColumnValue(const Column& column,
-                                         EntityId entityId, T reference) {
+testing::AssertionResult TestComponentValue(const Column& column,
+                                            EntityId entityId, T reference) {
   auto *value = column.get(entityId);
   if (!value || !value->has_value()) {
     return testing::AssertionFailure()
@@ -42,7 +43,7 @@ TEST(ColumnTest, EmptyInvariants) {
   EXPECT_EQ(column.get(0), nullptr);
 }
 
-TEST(ColumnTest, EmplaceAndGet) {
+TEST(ColumnTest, Emplace) {
   Column column;
 
   ASSERT_EQ(column.size(), 0);
@@ -54,29 +55,29 @@ TEST(ColumnTest, EmplaceAndGet) {
   EXPECT_EQ(column.has(0), true);
   EXPECT_EQ(column.size(), 1);
   // Check that the value was emplaced.
-  EXPECT_TRUE(TestColumnValue(column, 0, Position{1, 2}));
+  EXPECT_TRUE(TestComponentValue(column, 0, Position{1, 2}));
   // Check const-qualified get().
   const auto *const_column = &column;
-  EXPECT_TRUE(TestColumnValue(*const_column, 0, Position{1, 2}));
+  EXPECT_TRUE(TestComponentValue(*const_column, 0, Position{1, 2}));
 
   // Re-emplacement.
   column.emplace<Position>(0, 2, 3);
   EXPECT_EQ(column.has(0), true);
   EXPECT_EQ(column.size(), 1);
   // Check that the previous value was overwritten.
-  EXPECT_TRUE(TestColumnValue(column, 0, Position{2, 3}));
+  EXPECT_TRUE(TestComponentValue(column, 0, Position{2, 3}));
 
   // Additional emplacement.
   column.emplace<Position>(1, 4, 5);
   EXPECT_EQ(column.has(1), true);
   EXPECT_EQ(column.size(), 2);
   // Check that the previous value was not overwritten.
-  EXPECT_TRUE(TestColumnValue(column, 0, Position{2, 3}));
+  EXPECT_TRUE(TestComponentValue(column, 0, Position{2, 3}));
   // Check that new value was emplaced.
-  EXPECT_TRUE(TestColumnValue(column, 1, Position{4, 5}));
+  EXPECT_TRUE(TestComponentValue(column, 1, Position{4, 5}));
 }
 
-TEST(ColumnTest, SetAndGet) {
+TEST(ColumnTest, Set) {
   Column column;
 
   ASSERT_EQ(column.size(), 0);
@@ -88,26 +89,26 @@ TEST(ColumnTest, SetAndGet) {
   EXPECT_EQ(column.has(0), true);
   EXPECT_EQ(column.size(), 1);
   // Check that the value was set.
-  EXPECT_TRUE(TestColumnValue(column, 0, 1));
+  EXPECT_TRUE(TestComponentValue(column, 0, 1));
   // Check const-qualified get().
   const auto *const_column = &column;
-  EXPECT_TRUE(TestColumnValue(*const_column, 0, 1));
+  EXPECT_TRUE(TestComponentValue(*const_column, 0, 1));
 
   // Re-set.
   column.set(0, 2);
   EXPECT_EQ(column.has(0), true);
   EXPECT_EQ(column.size(), 1);
   // Check that the previous value was overwritten.
-  EXPECT_TRUE(TestColumnValue(column, 0, 2));
+  EXPECT_TRUE(TestComponentValue(column, 0, 2));
 
   // Additional set.
   column.set(1, 3);
   EXPECT_EQ(column.has(1), true);
   EXPECT_EQ(column.size(), 2);
   // Check that the previous value was not overwritten.
-  EXPECT_TRUE(TestColumnValue(column, 0, 2));
+  EXPECT_TRUE(TestComponentValue(column, 0, 2));
   // Check that new value was emplaced.
-  EXPECT_TRUE(TestColumnValue(column, 1, 3));
+  EXPECT_TRUE(TestComponentValue(column, 1, 3));
 }
 
 TEST(ColumnTest, Remove) {
@@ -126,7 +127,7 @@ TEST(ColumnTest, Remove) {
 
   // Test removal of existing entity.
   ASSERT_TRUE(column.has(1));
-  ASSERT_TRUE(TestColumnValue(column, 1, Position{3, 4}));
+  ASSERT_TRUE(TestComponentValue(column, 1, Position{3, 4}));
   EXPECT_EQ(column.remove(1), true);  // remove item
   EXPECT_EQ(column.size(), 2);
   EXPECT_EQ(column.has(1), false);
@@ -161,6 +162,58 @@ TEST(ColumnTest, Iterators) {
     }
     lookup->second = true;
   }
+}
+
+template <typename T>
+testing::AssertionResult TestComponentValue(const Components& components,
+                                            EntityId entityId, T reference) {
+  const T *value = components.get<T>(entityId);
+  if (!value) {
+    return testing::AssertionFailure()
+           << "Component does not have a value for entityId " << entityId;
+  }
+  if (*value != reference) {
+    return testing::AssertionFailure()
+           << "Component has the wrong value for entityId " << entityId
+           << " (expected " << reference << ", got " << *value << ")";
+  }
+  return testing::AssertionSuccess();
+}
+
+TEST(Components, EmptyInvariants) {
+  Components components;
+  EXPECT_EQ(components.has<Position>(0), false);
+  EXPECT_EQ(components.get<Position>(0), nullptr);
+}
+
+TEST(Components, Emplace) {
+  Components components;
+
+  ASSERT_EQ(components.has<Position>(0), false);
+  EXPECT_EQ(components.get<Position>(0), nullptr);
+
+  // Initial emplacement.
+  components.emplace<Position>(0, 1, 2);
+  EXPECT_EQ(components.has<Position>(0), true);
+  // Check that the value was emplaced.
+  EXPECT_TRUE(TestComponentValue(components, 0, Position{1, 2}));
+  // Check const-qualified get().
+  const auto *const_column = &components;
+  EXPECT_TRUE(TestComponentValue(*const_column, 0, Position{1, 2}));
+
+  // Re-emplacement.
+  components.emplace<Position>(0, 2, 3);
+  EXPECT_EQ(components.has<Position>(0), true);
+  // Check that the previous value was overwritten.
+  EXPECT_TRUE(TestComponentValue(components, 0, Position{2, 3}));
+
+  // Additional emplacement.
+  components.emplace<Position>(1, 4, 5);
+  EXPECT_EQ(components.has<Position>(1), true);
+  // Check that the previous value was not overwritten.
+  EXPECT_TRUE(TestComponentValue(components, 0, Position{2, 3}));
+  // Check that new value was emplaced.
+  EXPECT_TRUE(TestComponentValue(components, 1, Position{4, 5}));
 }
 
 }  // namespace bad::internal
