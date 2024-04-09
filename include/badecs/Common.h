@@ -13,6 +13,13 @@ using ComponentId = std::uint32_t;
 template <typename T>
 concept Component = std::is_copy_constructible_v<T>;
 
+ComponentId ComponentIdOf() {
+  static ComponentId id = 0;
+  return id++;
+}
+
+template <Component T> ComponentId componentId = ComponentIdOf<T>();
+
 } // namespace bad
 
 #endif // BADECS_COMMON_H
