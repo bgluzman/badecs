@@ -24,7 +24,8 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)  # windows
 FetchContent_MakeAvailable(googletest)
 
-add_library(badecs INTERFACE)
+add_library(badecs INTERFACE
+        include/badecs/internal/Components.h)
 target_include_directories(
         badecs
         INTERFACE
