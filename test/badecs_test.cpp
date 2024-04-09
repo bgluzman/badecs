@@ -15,9 +15,9 @@ std::ostream &operator<<(std::ostream &os, const Position &position) {
 
 namespace bad::internal {
 
-template <typename Column, Component T>
-testing::AssertionResult TestColumnValueImpl(Column &&column, EntityId entityId,
-                                             T reference) {
+template <typename T>
+testing::AssertionResult TestColumnValue(const Column &column,
+                                         EntityId entityId, T reference) {
   auto *value = column.get(entityId);
   if (!value || !value->has_value()) {
     return testing::AssertionFailure()
@@ -34,16 +34,6 @@ testing::AssertionResult TestColumnValueImpl(Column &&column, EntityId entityId,
            << ")";
   }
   return testing::AssertionSuccess();
-}
-
-template <Component T>
-testing::AssertionResult TestColumnValue(Column &column, EntityId entityId,
-                                         T reference) {
-  if (TestColumnValueImpl(const_cast<const Column &>(column), entityId,
-                          reference) == testing::AssertionSuccess()) {
-    return testing::AssertionSuccess();
-  }
-  return TestColumnValueImpl(column, entityId, reference);
 }
 
 TEST(ColumnTest, EmptyInvariants) {
