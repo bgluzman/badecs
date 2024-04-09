@@ -26,7 +26,10 @@ public:
                                                     std::forward<Ts>(args)...);
   }
 
-  // TODO (bgluzman): docstring
+  /// Sets the component of type T for the given entity to the given value.
+  /// \tparam T The type of the component to set.
+  /// \param entity The entity to associate with the component.
+  /// \param value The new value for the component.
   template <Component T>
   void set(EntityId entity, const T& value) {
     components_[componentId<T>].set(entity, value);
