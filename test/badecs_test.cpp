@@ -16,8 +16,8 @@ std::ostream& operator<<(std::ostream& os, const Position& position) {
 namespace bad::internal {
 
 template <typename T>
-testing::AssertionResult TestComponentValue(const Column& column,
-                                            EntityId entityId, T reference) {
+testing::AssertionResult TestColumnValue(const Column& column,
+                                         EntityId entityId, T reference) {
   auto *value = column.get(entityId);
   if (!value || !value->has_value()) {
     return testing::AssertionFailure()
@@ -55,26 +55,26 @@ TEST(ColumnTest, Emplace) {
   EXPECT_EQ(column.has(0), true);
   EXPECT_EQ(column.size(), 1);
   // Check that the value was emplaced.
-  EXPECT_TRUE(TestComponentValue(column, 0, Position{1, 2}));
+  EXPECT_TRUE(TestColumnValue(column, 0, Position{1, 2}));
   // Check const-qualified get().
   const auto *const_column = &column;
-  EXPECT_TRUE(TestComponentValue(*const_column, 0, Position{1, 2}));
+  EXPECT_TRUE(TestColumnValue(*const_column, 0, Position{1, 2}));
 
   // Re-emplacement.
   column.emplace<Position>(0, 2, 3);
   EXPECT_EQ(column.has(0), true);
   EXPECT_EQ(column.size(), 1);
   // Check that the previous value was overwritten.
-  EXPECT_TRUE(TestComponentValue(column, 0, Position{2, 3}));
+  EXPECT_TRUE(TestColumnValue(column, 0, Position{2, 3}));
 
   // Additional emplacement.
   column.emplace<Position>(1, 4, 5);
   EXPECT_EQ(column.has(1), true);
   EXPECT_EQ(column.size(), 2);
   // Check that the previous value was not overwritten.
-  EXPECT_TRUE(TestComponentValue(column, 0, Position{2, 3}));
+  EXPECT_TRUE(TestColumnValue(column, 0, Position{2, 3}));
   // Check that new value was emplaced.
-  EXPECT_TRUE(TestComponentValue(column, 1, Position{4, 5}));
+  EXPECT_TRUE(TestColumnValue(column, 1, Position{4, 5}));
 }
 
 TEST(ColumnTest, Set) {
@@ -89,26 +89,26 @@ TEST(ColumnTest, Set) {
   EXPECT_EQ(column.has(0), true);
   EXPECT_EQ(column.size(), 1);
   // Check that the value was set.
-  EXPECT_TRUE(TestComponentValue(column, 0, 1));
+  EXPECT_TRUE(TestColumnValue(column, 0, 1));
   // Check const-qualified get().
   const auto *const_column = &column;
-  EXPECT_TRUE(TestComponentValue(*const_column, 0, 1));
+  EXPECT_TRUE(TestColumnValue(*const_column, 0, 1));
 
   // Re-set.
   column.set(0, 2);
   EXPECT_EQ(column.has(0), true);
   EXPECT_EQ(column.size(), 1);
   // Check that the previous value was overwritten.
-  EXPECT_TRUE(TestComponentValue(column, 0, 2));
+  EXPECT_TRUE(TestColumnValue(column, 0, 2));
 
   // Additional set.
   column.set(1, 3);
   EXPECT_EQ(column.has(1), true);
   EXPECT_EQ(column.size(), 2);
   // Check that the previous value was not overwritten.
-  EXPECT_TRUE(TestComponentValue(column, 0, 2));
+  EXPECT_TRUE(TestColumnValue(column, 0, 2));
   // Check that new value was emplaced.
-  EXPECT_TRUE(TestComponentValue(column, 1, 3));
+  EXPECT_TRUE(TestColumnValue(column, 1, 3));
 }
 
 TEST(ColumnTest, Remove) {
@@ -127,7 +127,7 @@ TEST(ColumnTest, Remove) {
 
   // Test removal of existing entity.
   ASSERT_TRUE(column.has(1));
-  ASSERT_TRUE(TestComponentValue(column, 1, Position{3, 4}));
+  ASSERT_TRUE(TestColumnValue(column, 1, Position{3, 4}));
   EXPECT_EQ(column.remove(1), true);  // remove item
   EXPECT_EQ(column.size(), 2);
   EXPECT_EQ(column.has(1), false);
