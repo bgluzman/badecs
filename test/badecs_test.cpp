@@ -1,23 +1,21 @@
 #include <badecs/internal/Column.h>
-
 #include <gtest/gtest.h>
-
 #include <map>
 #include <ostream>
 
 struct Position {
-  int x;
-  int y;
-  auto operator<=>(const Position &) const = default;
+  int  x;
+  int  y;
+  auto operator<=>(const Position&) const = default;
 };
-std::ostream &operator<<(std::ostream &os, const Position &position) {
+std::ostream& operator<<(std::ostream& os, const Position& position) {
   return os << "Position{x=" << position.x << ", y=" << position.y << "}";
 }
 
 namespace bad::internal {
 
 template <typename T>
-testing::AssertionResult TestColumnValue(const Column &column,
+testing::AssertionResult TestColumnValue(const Column& column,
                                          EntityId entityId, T reference) {
   auto *value = column.get(entityId);
   if (!value || !value->has_value()) {
@@ -41,6 +39,7 @@ TEST(ColumnTest, EmptyInvariants) {
   Column column;
   EXPECT_EQ(column.size(), 0);
   EXPECT_EQ(column.has(0), false);
+  EXPECT_EQ(column.get(0), nullptr);
 }
 
 TEST(ColumnTest, EmplaceAndGet) {
@@ -128,7 +127,7 @@ TEST(ColumnTest, Remove) {
   // Test removal of existing entity.
   ASSERT_TRUE(column.has(1));
   ASSERT_TRUE(TestColumnValue(column, 1, Position{3, 4}));
-  EXPECT_EQ(column.remove(1), true); // remove item
+  EXPECT_EQ(column.remove(1), true);  // remove item
   EXPECT_EQ(column.size(), 2);
   EXPECT_EQ(column.has(1), false);
   EXPECT_EQ(column.get(1), nullptr);
@@ -146,14 +145,14 @@ TEST(ColumnTest, Iterators) {
 
   // Initialize column.
   EntityId id = 0;
-  for (const auto &[pos, _] : positions) {
+  for (const auto& [pos, _] : positions) {
     column.set(id++, pos);
   }
   ASSERT_EQ(column.size(), 3);
 
   // Iterate over the column and mark each position as found if it has not
   // already been seen. If it has been seen, then fail.
-  for (const auto &[entityId, value] : column) {
+  for (const auto& [entityId, value] : column) {
     auto pos = std::any_cast<Position>(value);
     auto lookup = positions.find(pos);
     ASSERT_NE(lookup, positions.end()) << "Unexpected position found " << pos;
@@ -164,4 +163,4 @@ TEST(ColumnTest, Iterators) {
   }
 }
 
-} // namespace bad::internal
+}  // namespace bad::internal
