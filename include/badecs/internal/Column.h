@@ -3,7 +3,7 @@
 
 #include <any>
 #include <badecs/Common.h>
-#include <map>
+#include <unordered_map>
 
 namespace bad::internal {
 
@@ -85,7 +85,7 @@ private:
   //  incredibly important since get() returns a pointer into the map. If
   //  another map implementation is chosen, it is possible that get() should
   //  have different semantics OR the values in the map should be pointers.
-  std::map<EntityId, std::any> components_ = {};
+  std::unordered_map<EntityId, std::any> components_ = {};
 };
 
 }  // namespace bad::internal
