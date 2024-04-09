@@ -44,10 +44,12 @@ public:
     return false;
   }
 
-  // TODO (bgluzman): docstring
-  template <std::ranges::range T>
-  void removeAll(EntityId /*entity*/, const T& /*componentsToRemove*/) {
-    // TODO (bgluzman)
+  template <Component T, std::ranges::range Range>
+    requires(std::is_convertible_v<std::ranges::range_value_t<Range>, EntityId>)
+  void removeAll(const Range& entities) {
+    for (EntityId entity : entities) {
+      remove<T>(entity);
+    }
   }
 
   /// Returns true if a component of type T exists for the given entity.

@@ -117,7 +117,7 @@ TEST(ColumnTest, Remove) {
   // Initialize column.
   column.emplace<Position>(0, 1, 2);
   column.emplace<Position>(1, 3, 4);
-  column.emplace<Position>(2, 3, 4);
+  column.emplace<Position>(2, 5, 6);
   ASSERT_EQ(column.size(), 3);
 
   // Test removal of non-existent entity.
@@ -252,7 +252,7 @@ TEST(ComponentsTest, Remove) {
   // Initialize components.
   components.emplace<Position>(0, 1, 2);
   components.emplace<Position>(1, 3, 4);
-  components.emplace<Position>(2, 3, 4);
+  components.emplace<Position>(2, 5, 6);
 
   // Test removal of non-existent entity.
   ASSERT_FALSE(components.has<Position>(3));
@@ -264,6 +264,34 @@ TEST(ComponentsTest, Remove) {
   EXPECT_EQ(components.remove<Position>(1), true);  // remove item
   EXPECT_EQ(components.has<Position>(1), false);
   EXPECT_EQ(components.get<Position>(1), nullptr);
+}
+
+TEST(ComponentsTest, RemoveAll) {
+  Components components;
+
+  // Initialize components.
+  components.emplace<Position>(0, 1, 2);
+  components.emplace<Position>(1, 3, 4);
+  components.emplace<Position>(2, 5, 6);
+
+  // Test removal of a set of entities.
+  ASSERT_TRUE(components.has<Position>(0));
+  ASSERT_TRUE(TestComponentValue(components, 0, Position{1, 2}));
+  ASSERT_TRUE(components.has<Position>(1));
+  ASSERT_TRUE(TestComponentValue(components, 1, Position{3, 4}));
+  ASSERT_TRUE(components.has<Position>(2));
+  ASSERT_TRUE(TestComponentValue(components, 2, Position{5, 6}));
+  ASSERT_EQ(components.has<Position>(10), false);
+  ASSERT_EQ(components.get<Position>(10), nullptr);
+  components.removeAll<Position>(std::vector{0, 2, 10});
+  EXPECT_EQ(components.has<Position>(0), false);
+  EXPECT_EQ(components.get<Position>(0), nullptr);
+  ASSERT_TRUE(components.has<Position>(1));
+  EXPECT_TRUE(TestComponentValue(components, 1, Position{3, 4}));
+  EXPECT_EQ(components.has<Position>(2), false);
+  EXPECT_EQ(components.get<Position>(2), nullptr);
+  EXPECT_EQ(components.has<Position>(10), false);
+  EXPECT_EQ(components.get<Position>(10), nullptr);
 }
 
 }  // namespace bad::internal
