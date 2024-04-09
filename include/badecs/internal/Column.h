@@ -41,21 +41,26 @@ public:
 
   /// Returns true if a component for the given entity exists in this column.
   /// \param entityId The entity to check.
+  /// \return True if a component exists for the given entity.
   [[nodiscard]] bool has(EntityId entityId) const noexcept {
     return components_.count(entityId) > 0;
   }
 
-  /// Returns a pointer to the component for the given entity, or nullptr if no
-  /// such component exists.
+  /// Returns a pointer to the type-erased component for the given entity, or
+  /// nullptr if no such component exists.
   /// \param entityId The entity for which we are fetching the component.
+  /// \return A pointer to a std::any storing the component, or nullptr if no
+  ///  such component exists.
   [[nodiscard]] std::any *get(EntityId entityId) {
     return const_cast<std::any *>(
         const_cast<const Column *>(this)->get(entityId));
   }
 
-  /// Returns a pointer to the component for the given entity, or nullptr if no
-  /// such component exists.
+  /// Returns a pointer to the type-erased component for the given entity, or
+  /// nullptr if no such component exists.
   /// \param entityId The entity for which we are fetching the component.
+  /// \return A pointer to a std::any storing the component, or nullptr if no
+  ///  such component exists.
   [[nodiscard]] const std::any *get(EntityId entityId) const {
     if (auto it = components_.find(entityId); it != components_.end()) {
       return &it->second;
@@ -65,12 +70,15 @@ public:
   }
 
   /// Returns the number of components stored in this column.
+  /// \return The number of components stored in this column.
   [[nodiscard]] std::size_t size() const noexcept { return components_.size(); }
 
-  // TODO (bgluzman): docstring
+  /// Returns an iterator to the beginning of the components in this column.
+  /// \return An iterator to the beginning of the components in this column.
   [[nodiscard]] auto begin() noexcept { return components_.begin(); }
 
-  // TODO (bgluzman): docstring
+  /// Returns an iterator to the end of the components in this column.
+  /// \return An iterator to the end of the components in this column.
   [[nodiscard]] auto end() noexcept { return components_.end(); }
 
 private:

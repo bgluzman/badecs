@@ -2,12 +2,13 @@
 
 #include <gtest/gtest.h>
 
+#include <map>
 #include <ostream>
 
 struct Position {
   int x;
   int y;
-  bool operator<=>(const Position &) const = default;
+  auto operator<=>(const Position &) const = default;
 };
 std::ostream &operator<<(std::ostream &os, const Position &position) {
   return os << "Position{x=" << position.x << ", y=" << position.y << "}";
@@ -131,6 +132,36 @@ TEST(ColumnTest, Remove) {
   EXPECT_EQ(column.size(), 2);
   EXPECT_EQ(column.has(1), false);
   EXPECT_EQ(column.get(1), nullptr);
+}
+
+TEST(ColumnTest, Iterators) {
+  Column column;
+  // Initialize a map of test positions to whether they have been found in the
+  // column. We will iterate over the column and mark each position as found.
+  std::map<Position, bool> positions = {
+      {Position{1, 2}, false},
+      {Position{3, 4}, false},
+      {Position{5, 6}, false},
+  };
+
+  // Initialize column.
+  EntityId id = 0;
+  for (const auto &[pos, _] : positions) {
+    column.set(id++, pos);
+  }
+  ASSERT_EQ(column.size(), 3);
+
+  // Iterate over the column and mark each position as found if it has not
+  // already been seen. If it has been seen, then fail.
+  for (const auto &[entityId, value] : column) {
+    auto pos = std::any_cast<Position>(value);
+    auto lookup = positions.find(pos);
+    ASSERT_NE(lookup, positions.end()) << "Unexpected position found " << pos;
+    if (lookup->second) {
+      FAIL() << "Position " << lookup->first << " was found twice";
+    }
+    lookup->second = true;
+  }
 }
 
 } // namespace bad::internal
