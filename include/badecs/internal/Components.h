@@ -18,18 +18,18 @@ public:
   /// Emplace-constructs a component of type T for the given entity.
   /// \tparam T The type of the component to construct.
   /// \tparam Ts The types of the arguments to pass to the constructor of T.
-  /// \param entityId The entity to associate with the component.
+  /// \param entity The entity to associate with the component.
   /// \param args The arguments to pass to the constructor of T.
   template <Component T, typename... Ts>
-  void emplace(EntityId entityId, Ts&&...args) {
-    components_[componentId<T>].template emplace<T>(entityId,
+  void emplace(EntityId entity, Ts&&...args) {
+    components_[componentId<T>].template emplace<T>(entity,
                                                     std::forward<Ts>(args)...);
   }
 
   // TODO (bgluzman): docstring
   template <Component T>
-  void set(EntityId entityId, const T& value) {
-    components_[componentId<T>].set(entityId, value);
+  void set(EntityId entity, const T& value) {
+    components_[componentId<T>].set(entity, value);
   }
 
   // TODO (bgluzman): docstring
@@ -47,12 +47,12 @@ public:
 
   /// Returns true if a component of type T exists for the given entity.
   /// \tparam T The type of the component.
-  /// \param entityId The entity to check.
+  /// \param entity The entity to check.
   /// \return True if a component of type T exists for the given entity.
   template <typename T>
-  bool has(EntityId entityId) const noexcept {
+  bool has(EntityId entity) const noexcept {
     if (auto it = components_.find(componentId<T>); it != components_.end()) {
-      return it->second.has(entityId);
+      return it->second.has(entity);
     }
     return false;
   }
@@ -60,25 +60,25 @@ public:
   /// Returns a pointer to the component of type T for the given entity, or
   /// nullptr if no such component exists.
   /// \tparam T The type of the component.
-  /// \param entityId The entity for which we are fetching the component.
+  /// \param entity The entity for which we are fetching the component.
   /// \return A pointer to the component of type T, or nullptr if no such
   /// component exists.
   template <Component T>
-  T *get(EntityId entityId) {
+  T *get(EntityId entity) {
     return const_cast<T *>(
-        const_cast<const Components *>(this)->get<T>(entityId));
+        const_cast<const Components *>(this)->get<T>(entity));
   }
 
   /// Returns a pointer to the component of type T for the given entity, or
   /// nullptr if no such component exists.
   /// \tparam T The type of the component.
-  /// \param entityId The entity for which we are fetching the component.
+  /// \param entity The entity for which we are fetching the component.
   /// \return A pointer to the component of type T, or nullptr if no such
   /// component exists.
   template <Component T>
-  const T *get(EntityId entityId) const {
+  const T *get(EntityId entity) const {
     if (auto it = components_.find(componentId<T>); it != components_.end()) {
-      return std::any_cast<T>(it->second.get(entityId));
+      return std::any_cast<T>(it->second.get(entity));
     }
     return nullptr;
   }

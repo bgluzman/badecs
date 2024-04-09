@@ -18,50 +18,50 @@ public:
   /// Emplace-constructs a component of type T for the given entity.
   /// \tparam T The type of the component to construct.
   /// \tparam Args The types of the arguments to pass to the constructor of T.
-  /// \param entityId The entity to associate with the component.
+  /// \param entity The entity to associate with the component.
   /// \param args The arguments to pass to the constructor of T.
   template <Component T, typename... Args>
-  void emplace(EntityId entityId, Args&&...args) {
-    components_[entityId] =
+  void emplace(EntityId entity, Args&&...args) {
+    components_[entity] =
         std::any(std::in_place_type<T>, std::forward<Args>(args)...);
   }
 
   /// Sets the component for the given entity to the given value.
-  /// \param entityId The entity to associate with the component.
+  /// \param entity The entity to associate with the component.
   /// \param value The new value for the component.
-  void set(EntityId entityId, std::any value) {
-    components_[entityId] = std::move(value);
+  void set(EntityId entity, std::any value) {
+    components_[entity] = std::move(value);
   }
 
   /// Removes the component for the given entity.
-  /// \param entityId The entity from which to remove the component.
+  /// \param entity The entity from which to remove the component.
   /// \return True if the component was removed, false if no such component.
-  bool remove(EntityId entityId) { return components_.erase(entityId) > 0; }
+  bool remove(EntityId entity) { return components_.erase(entity) > 0; }
 
   /// Returns true if a component for the given entity exists in this column.
-  /// \param entityId The entity to check.
+  /// \param entity The entity to check.
   /// \return True if a component exists for the given entity.
-  [[nodiscard]] bool has(EntityId entityId) const noexcept {
-    return components_.count(entityId) > 0;
+  [[nodiscard]] bool has(EntityId entity) const noexcept {
+    return components_.count(entity) > 0;
   }
 
   /// Returns a pointer to the type-erased component for the given entity, or
   /// nullptr if no such component exists.
-  /// \param entityId The entity for which we are fetching the component.
+  /// \param entity The entity for which we are fetching the component.
   /// \return A pointer to a std::any storing the component, or nullptr if no
   ///  such component exists.
-  [[nodiscard]] std::any *get(EntityId entityId) {
+  [[nodiscard]] std::any *get(EntityId entity) {
     return const_cast<std::any *>(
-        const_cast<const Column *>(this)->get(entityId));
+        const_cast<const Column *>(this)->get(entity));
   }
 
   /// Returns a pointer to the type-erased component for the given entity, or
   /// nullptr if no such component exists.
-  /// \param entityId The entity for which we are fetching the component.
+  /// \param entity The entity for which we are fetching the component.
   /// \return A pointer to a std::any storing the component, or nullptr if no
   ///  such component exists.
-  [[nodiscard]] const std::any *get(EntityId entityId) const {
-    if (auto it = components_.find(entityId); it != components_.end()) {
+  [[nodiscard]] const std::any *get(EntityId entity) const {
+    if (auto it = components_.find(entity); it != components_.end()) {
       return &it->second;
     } else {
       return nullptr;
