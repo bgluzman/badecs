@@ -34,11 +34,10 @@ public:
     components_[entityId] = std::move(value);
   }
 
-  // TODO (bgluzman): docstring
-  bool remove(EntityId /*entityId*/) {
-    // TODO (bgluzman): implement
-    return false;
-  }
+  /// Removes the component for the given entity.
+  /// \param entityId The entity from which to remove the component.
+  /// \return True if the component was removed, false if no such component.
+  bool remove(EntityId entityId) { return components_.erase(entityId) > 0; }
 
   /// Returns true if a component for the given entity exists in this column.
   /// \param entityId The entity to check.

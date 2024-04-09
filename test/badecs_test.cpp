@@ -110,4 +110,27 @@ TEST(ColumnTest, SetAndGet) {
   EXPECT_TRUE(TestColumnValue(column, 1, 3));
 }
 
+TEST(ColumnTest, Remove) {
+  Column column;
+
+  // Initialize column.
+  column.emplace<Position>(0, 1, 2);
+  column.emplace<Position>(1, 3, 4);
+  column.emplace<Position>(2, 3, 4);
+  ASSERT_EQ(column.size(), 3);
+
+  // Test removal of non-existent entity.
+  ASSERT_FALSE(column.has(3));
+  EXPECT_EQ(column.remove(3), false);
+  EXPECT_EQ(column.size(), 3);
+
+  // Test removal of existing entity.
+  ASSERT_TRUE(column.has(1));
+  ASSERT_TRUE(TestColumnValue(column, 1, Position{3, 4}));
+  EXPECT_EQ(column.remove(1), true); // remove item
+  EXPECT_EQ(column.size(), 2);
+  EXPECT_EQ(column.has(1), false);
+  EXPECT_EQ(column.get(1), nullptr);
+}
+
 } // namespace bad::internal
