@@ -32,10 +32,15 @@ public:
     components_[componentId<T>].set(entity, value);
   }
 
-  // TODO (bgluzman): docstring
+  /// Removes the component of type T for the given entity.
+  /// \tparam T The type of the component to remove.
+  /// \param entity The entity from which to remove the component.
+  /// \return True if the component was removed, false if no such component.
   template <Component T>
-  bool remove(EntityId /*entity*/) {
-    // TODO (bgluzman)
+  bool remove(EntityId entity) {
+    if (auto it = components_.find(componentId<T>); it != components_.end()) {
+      return it->second.remove(entity);
+    }
     return false;
   }
 

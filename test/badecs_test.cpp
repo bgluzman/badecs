@@ -246,4 +246,24 @@ TEST(ComponentsTest, Set) {
   EXPECT_TRUE(TestComponentValue(components, 1, 3));
 }
 
+TEST(ComponentsTest, Remove) {
+  Components components;
+
+  // Initialize components.
+  components.emplace<Position>(0, 1, 2);
+  components.emplace<Position>(1, 3, 4);
+  components.emplace<Position>(2, 3, 4);
+
+  // Test removal of non-existent entity.
+  ASSERT_FALSE(components.has<Position>(3));
+  EXPECT_EQ(components.remove<Position>(3), false);
+
+  // Test removal of existing entity.
+  ASSERT_TRUE(components.has<Position>(1));
+  ASSERT_TRUE(TestComponentValue(components, 1, Position{3, 4}));
+  EXPECT_EQ(components.remove<Position>(1), true);  // remove item
+  EXPECT_EQ(components.has<Position>(1), false);
+  EXPECT_EQ(components.get<Position>(1), nullptr);
+}
+
 }  // namespace bad::internal
