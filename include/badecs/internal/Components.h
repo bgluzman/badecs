@@ -16,31 +16,49 @@ class Components {
 public:
   // TODO (bgluzman): docstring
   template <Component T, typename... Ts>
-  void emplace(EntityId entityId, Ts&&...args);
+  void emplace(EntityId /*entityId*/, Ts&&.../*args*/) {
+    // TODO (bgluzman)
+  }
 
   // TODO (bgluzman): docstring
   template <Component T>
-  void set(EntityId entity, const T& value);
+  void set(EntityId /*entity*/, const T& /*value*/) {
+    // TODO (bgluzman)
+  }
 
   // TODO (bgluzman): docstring
   template <Component T>
-  bool remove(EntityId entity);
+  bool remove(EntityId /*entity*/) {
+    // TODO (bgluzman)
+    return false;
+  }
 
   // TODO (bgluzman): docstring
   template <std::ranges::range T>
-  bool removeAll(EntityId entity, const T& componentsToRemove);
+  void removeAll(EntityId /*entity*/, const T& /*componentsToRemove*/) {
+    // TODO (bgluzman)
+  }
 
   // TODO (bgluzman): docstring
   template <typename T>
-  bool has(EntityId entityId) const noexcept;
+  bool has(EntityId /*entityId*/) const noexcept {
+    // TODO (bgluzman)
+    return false;
+  }
 
   // TODO (bgluzman): docstring
   template <Component T>
-  T *get(EntityId entityId);
+  T *get(EntityId /*entityId*/) {
+    // TODO (bgluzman)
+    return nullptr;
+  }
 
   // TODO (bgluzman): docstring
   template <Component T>
-  const T *get(EntityId entityId) const;
+  const T *get(EntityId /*entityId*/) const {
+    // TODO (bgluzman)
+    return nullptr;
+  }
 
 private:
   std::map<ComponentId, Column> components_;
