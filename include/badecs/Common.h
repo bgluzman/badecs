@@ -13,13 +13,16 @@ using ComponentId = std::uint32_t;
 template <typename T>
 concept Component = std::is_copy_constructible_v<T>;
 
-ComponentId ComponentIdOf() {
-  static ComponentId id = 0;
-  return id++;
+// TODO (bgluzman): put this somewhere else?
+namespace internal {
+ComponentId nextComponentId() {
+  static ComponentId nextId = 0;
+  return nextId++;
 }
+}  // namespace internal
 
 template <Component T>
-ComponentId componentId = ComponentIdOf<T>();
+ComponentId componentId = internal::nextComponentId();
 
 }  // namespace bad
 
