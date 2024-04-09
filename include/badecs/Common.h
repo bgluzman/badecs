@@ -18,8 +18,9 @@ ComponentId ComponentIdOf() {
   return id++;
 }
 
-template <Component T> ComponentId componentId = ComponentIdOf<T>();
+template <Component T>
+ComponentId componentId = ComponentIdOf<T>();
 
-} // namespace bad
+}  // namespace bad
 
-#endif // BADECS_COMMON_H
+#endif  // BADECS_COMMON_H

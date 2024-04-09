@@ -10,6 +10,6 @@ namespace bad {
 /// for entities with specific components.
 class Registry {};
 
-} // namespace bad
+}  // namespace bad
 
-#endif // BADECS_REGISTRY_H
+#endif  // BADECS_REGISTRY_H

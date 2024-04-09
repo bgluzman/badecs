@@ -1,9 +1,8 @@
 #ifndef BADECS_INTERNAL_COLUMN_H
 #define BADECS_INTERNAL_COLUMN_H
 
-#include <badecs/Common.h>
-
 #include <any>
+#include <badecs/Common.h>
 #include <map>
 
 namespace bad::internal {
@@ -22,7 +21,7 @@ public:
   /// \param entityId The entity to associate with the component.
   /// \param args The arguments to pass to the constructor of T.
   template <Component T, typename... Args>
-  void emplace(EntityId entityId, Args &&...args) {
+  void emplace(EntityId entityId, Args&&...args) {
     components_[entityId] =
         std::any(std::in_place_type<T>, std::forward<Args>(args)...);
   }
@@ -89,6 +88,6 @@ private:
   std::map<EntityId, std::any> components_ = {};
 };
 
-} // namespace bad::internal
+}  // namespace bad::internal
 
-#endif // BADECS_INTERNAL_COLUMN_H
+#endif  // BADECS_INTERNAL_COLUMN_H
