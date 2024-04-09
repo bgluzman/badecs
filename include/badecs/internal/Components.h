@@ -28,8 +28,8 @@ public:
 
   // TODO (bgluzman): docstring
   template <Component T>
-  void set(EntityId /*entity*/, const T& /*value*/) {
-    // TODO (bgluzman)
+  void set(EntityId entityId, const T& value) {
+    components_[componentId<T>].set(entityId, value);
   }
 
   // TODO (bgluzman): docstring

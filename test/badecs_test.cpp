@@ -216,4 +216,34 @@ TEST(Components, Emplace) {
   EXPECT_TRUE(TestComponentValue(components, 1, Position{4, 5}));
 }
 
+TEST(ComponentsTest, Set) {
+  Components components;
+
+  ASSERT_EQ(components.has<int>(0), false);
+  EXPECT_EQ(components.get<int>(0), nullptr);
+
+  // Initial set.
+  components.set(0, 1);
+  EXPECT_EQ(components.has<int>(0), true);
+  // Check that the value was set.
+  EXPECT_TRUE(TestComponentValue(components, 0, 1));
+  // Check const-qualified get().
+  const auto *const_column = &components;
+  EXPECT_TRUE(TestComponentValue(*const_column, 0, 1));
+
+  // Re-set.
+  components.set(0, 2);
+  EXPECT_EQ(components.has<int>(0), true);
+  // Check that the previous value was overwritten.
+  EXPECT_TRUE(TestComponentValue(components, 0, 2));
+
+  // Additional set.
+  components.set(1, 3);
+  EXPECT_EQ(components.has<int>(1), true);
+  // Check that the previous value was not overwritten.
+  EXPECT_TRUE(TestComponentValue(components, 0, 2));
+  // Check that new value was emplaced.
+  EXPECT_TRUE(TestComponentValue(components, 1, 3));
+}
+
 }  // namespace bad::internal
