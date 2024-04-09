@@ -55,6 +55,9 @@ TEST(ColumnTest, EmplaceAndGet) {
   EXPECT_EQ(column.size(), 1);
   // Check that the value was emplaced.
   EXPECT_TRUE(TestColumnValue(column, 0, Position{1, 2}));
+  // Check const-qualified get().
+  const auto *const_column = &column;
+  EXPECT_TRUE(TestColumnValue(*const_column, 0, Position{1, 2}));
 
   // Re-emplacement.
   column.emplace<Position>(0, 2, 3);
@@ -86,6 +89,9 @@ TEST(ColumnTest, SetAndGet) {
   EXPECT_EQ(column.size(), 1);
   // Check that the value was set.
   EXPECT_TRUE(TestColumnValue(column, 0, 1));
+  // Check const-qualified get().
+  const auto *const_column = &column;
+  EXPECT_TRUE(TestColumnValue(*const_column, 0, 1));
 
   // Re-set.
   column.set(0, 2);
