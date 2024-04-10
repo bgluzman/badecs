@@ -1,5 +1,6 @@
 #include <badecs/internal/Column.h>
 #include <badecs/internal/Components.h>
+#include <badecs/internal/Entities.h>
 #include <gtest/gtest.h>
 #include <map>
 #include <ostream>
@@ -296,6 +297,90 @@ TEST(ComponentsTest, RemoveAll) {
   EXPECT_EQ(components.get<Position>(2), nullptr);
   EXPECT_EQ(components.has<Position>(10), false);
   EXPECT_EQ(components.get<Position>(10), nullptr);
+}
+
+TEST(EntitiesTest, ReserveInstantiate) {
+  Entities entities;
+
+  // Reserve two entities before instantiating them.
+  EntityId id1 = entities.reserve();
+  EntityId id2 = entities.reserve();
+  // Ensure reservations are unique.
+  EXPECT_NE(id1, id2);
+  EXPECT_FALSE(entities.has(id1));
+  EXPECT_FALSE(entities.has(id2));
+
+  // Instantiate the first entity.
+  entities.instantiate(id1);
+  EXPECT_TRUE(entities.has(id1));
+  EXPECT_FALSE(entities.has(id2));
+
+  // Instantiate the second entity.
+  entities.instantiate(id2);
+  EXPECT_TRUE(entities.has(id1));
+  EXPECT_TRUE(entities.has(id2));
+
+  // Now instantiate a third entity and ensure it's unique w.r.t. the first two.
+  EntityId id3 = entities.reserve();
+  entities.instantiate(id3);
+  EXPECT_NE(id1, id3);
+  EXPECT_NE(id2, id3);
+  EXPECT_TRUE(entities.has(id3));
+}
+
+TEST(EntitiesTest, EntityComponents) {
+  Entities entities;
+
+  // Ensure non-existent entity has no components.
+  EXPECT_FALSE(entities.hasComponent(0, componentId<Position>));
+  // Ensure adding a component to a non-existent entity fails.
+  EXPECT_FALSE(entities.addComponent(0, componentId<Position>));
+
+  // Reserve and instantiate an entity.
+  EntityId id = entities.reserve();
+  entities.instantiate(id);
+  EXPECT_TRUE(entities.has(id));
+  EXPECT_FALSE(entities.hasComponent(id, componentId<Position>));
+
+  // Add a component to the entity and check for its existence.
+  entities.addComponent(id, componentId<Position>);
+  EXPECT_TRUE(entities.hasComponent(id, componentId<Position>));
+
+  // Remove the component and check for its absence.
+  entities.removeComponent(id, componentId<Position>);
+  EXPECT_FALSE(entities.hasComponent(id, componentId<Position>));
+}
+
+TEST(EntitiesTest, Remove) {
+  Entities                                       entities;
+  std::optional<std::unordered_set<ComponentId>> components = std::nullopt;
+
+  // Try removing an entity that doesn't even exist.
+  ASSERT_FALSE(entities.has(0));
+  components = entities.remove(0);
+  EXPECT_FALSE(components.has_value());
+
+  // Reserve and instantiate an entity.
+  EntityId id = entities.reserve();
+  entities.instantiate(id);
+  ASSERT_TRUE(entities.has(id));
+
+  // Remove the entity before adding any components.
+  components = entities.remove(id);
+  EXPECT_TRUE(components.has_value());  // should be empty, but existent
+  EXPECT_FALSE(entities.has(id));
+
+  // Remove an entity with components.
+  id = entities.reserve();
+  entities.instantiate(id);
+  ASSERT_TRUE(entities.has(id));
+  ASSERT_TRUE(entities.addComponent(id, componentId<Position>));
+  ASSERT_TRUE(entities.hasComponent(id, componentId<Position>));
+  components = entities.remove(id);
+  ASSERT_TRUE(components.has_value());
+  ASSERT_EQ(components->size(), 1);
+  EXPECT_EQ(*components->begin(), componentId<Position>);
+  EXPECT_FALSE(entities.has(id));
 }
 
 }  // namespace bad::internal
