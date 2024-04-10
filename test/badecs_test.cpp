@@ -254,6 +254,10 @@ TEST(ComponentsTest, Remove) {
   components.emplace<Position>(1, 3, 4);
   components.emplace<Position>(2, 5, 6);
 
+  // Test removal of non-existent component type.
+  ASSERT_FALSE(components.has<int>(0));
+  EXPECT_EQ(components.remove<int>(0), false);
+
   // Test removal of non-existent entity.
   ASSERT_FALSE(components.has<Position>(3));
   EXPECT_EQ(components.remove<Position>(3), false);
