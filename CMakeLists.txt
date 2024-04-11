@@ -52,6 +52,7 @@ if (WIN32)
             badecs_test
             PRIVATE
             /Wall
+            /Wd4820 # compiler-inserted padding is fine
             /WX
     )
 else ()
