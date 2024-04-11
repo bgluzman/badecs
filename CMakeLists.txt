@@ -51,7 +51,7 @@ if (WIN32)
     target_compile_options(
             badecs_test
             PRIVATE
-            /W4
+            /W3
             /WX
             /wd4820 # compiler-inserted padding is fine
     )
