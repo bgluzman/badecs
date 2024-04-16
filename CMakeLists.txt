@@ -47,21 +47,31 @@ target_link_libraries(
         badecs
         gtest_main
 )
-target_compile_options(
-        badecs_test
-        PRIVATE
-        -Wall
-        -Wextra
-        -Wpedantic
-        -Werror
-        -fprofile-arcs
-        -ftest-coverage
-)
-target_link_options(
-        badecs_test
-        PRIVATE
-        --coverage
-)
+if (WIN32)
+    target_compile_options(
+            badecs_test
+            PRIVATE
+            /W4
+            /WX
+            /wd4820 # compiler-inserted padding is fine
+    )
+else ()
+    target_compile_options(
+            badecs_test
+            PRIVATE
+            -Wall
+            -Wextra
+            -Wpedantic
+            -Werror
+            -fprofile-arcs
+            -ftest-coverage
+    )
+    target_link_options(
+            badecs_test
+            PRIVATE
+            --coverage
+    )
+endif ()
 include(GoogleTest)
 gtest_discover_tests(badecs_test)
 

@@ -288,7 +288,7 @@ TEST(ComponentsTest, RemoveAll) {
   ASSERT_TRUE(TestComponentValue(components, 2, Position{5, 6}));
   ASSERT_EQ(components.has<Position>(10), false);
   ASSERT_EQ(components.get<Position>(10), nullptr);
-  components.removeAll<Position>(std::vector{0, 2, 10});
+  components.removeAll<Position>(std::vector{0U, 2U, 10U});
   EXPECT_EQ(components.has<Position>(0), false);
   EXPECT_EQ(components.get<Position>(0), nullptr);
   ASSERT_TRUE(components.has<Position>(1));
