@@ -1,3 +1,4 @@
+#include <badecs/View.h>
 #include <badecs/internal/Column.h>
 #include <badecs/internal/Components.h>
 #include <badecs/internal/Entities.h>
@@ -381,6 +382,112 @@ TEST(EntitiesTest, Remove) {
   ASSERT_EQ(components->size(), 1);
   EXPECT_EQ(*components->begin(), componentId<Position>);
   EXPECT_FALSE(entities.has(id));
+}
+
+class ViewTest : public testing::Test {
+protected:
+  void SetUp() override {
+    posColumn.emplace<Position>(0, 1, 2);
+    posColumn.emplace<Position>(1, 3, 4);
+    posColumn.emplace<Position>(2, 5, 6);
+    intColumn.set(1, 42);
+    boolColumn.set(0, true);
+    boolColumn.set(2, false);
+    floatColumn.set(2, 123.f);
+  }
+
+  Column posColumn, intColumn, boolColumn, floatColumn;
+};
+
+TEST_F(ViewTest, EmptyView) {
+  View<Position> nullView1({nullptr});
+  EXPECT_EQ(nullView1.begin(), nullView1.end());
+  View<Position, int> nullView2({&posColumn, nullptr});
+  EXPECT_EQ(nullView2.begin(), nullView2.end());
+
+  Column      emptyColumn;
+  View<float> emptyColumnView1({&emptyColumn});
+  EXPECT_EQ(emptyColumnView1.begin(), emptyColumnView1.end());
+  View<Position, float> emptyColumnView2({&posColumn, &emptyColumn});
+  EXPECT_EQ(emptyColumnView2.begin(), emptyColumnView2.end());
+}
+
+TEST_F(ViewTest, SingleComponent) {
+  View<Position> view({&posColumn});
+  auto           begin = view.begin();
+  auto           end = view.end();
+
+  EXPECT_EQ(std::distance(begin, end), posColumn.size());
+
+  for (auto [columnKV, viewTuple] : std::views::zip(posColumn, view)) {
+    auto [columnEntityId, posAny] = columnKV;
+    auto [viewEntityId, viewPos] = viewTuple;
+    SCOPED_TRACE("columnEntityId=" + std::to_string(columnEntityId) +
+                 ", viewEntityId=" + std::to_string(viewEntityId));
+    ASSERT_TRUE(posAny.has_value());
+    ASSERT_EQ(posAny.type(), typeid(Position));
+    EXPECT_EQ(columnEntityId, viewEntityId);
+    EXPECT_EQ(std::any_cast<Position>(posAny), viewPos);
+  }
+}
+
+TEST_F(ViewTest, MultiComponent) {
+  View<Position, bool> view({&posColumn, &boolColumn});
+
+  // Construct a map of the relationships from the view since iteration order
+  // is not guaranteed.
+  std::map<EntityId, std::tuple<Position, bool>> viewData;
+  std::transform(view.begin(), view.end(),
+                 std::inserter(viewData, viewData.end()),
+                 [](const auto& tuple) {
+                   auto [entityId, pos, b] = tuple;
+                   return std::make_pair(entityId, std::make_tuple(pos, b));
+                 });
+
+  EXPECT_EQ(viewData.size(), 2);
+
+  ASSERT_TRUE(viewData.contains(0));
+  EXPECT_EQ(std::get<0>(viewData[0]), (Position{1, 2}));
+  EXPECT_EQ(std::get<1>(viewData[0]), true);
+
+  ASSERT_TRUE(viewData.contains(2));
+  EXPECT_EQ(std::get<0>(viewData[2]), (Position{5, 6}));
+  EXPECT_EQ(std::get<1>(viewData[2]), false);
+}
+
+TEST_F(ViewTest, EmptyIntersection) {
+  // `intColumn` and `boolColumn` have disjoint sets of entities.
+  View<Position, int, bool> view({&posColumn, &intColumn, &boolColumn});
+  EXPECT_EQ(view.begin(), view.end());
+}
+
+TEST_F(ViewTest, FilterViewedColumn) {
+  View<Position, bool> view({&posColumn, &boolColumn});
+  // Filtering on any column which is viewed results in no values iterated.
+  view.filterColumn(&boolColumn);
+  EXPECT_EQ(view.begin(), view.end());
+}
+
+TEST_F(ViewTest, FilterDisjointColumn) {
+  View<Position, bool> view({&posColumn, &boolColumn});
+  // Filtering on a column which is disjoint w.r.t. the viewed columns should
+  // not impact the values iterated.
+  view.filterColumn(&intColumn);
+  EXPECT_EQ(std::distance(view.begin(), view.end()), 2);
+}
+
+TEST_F(ViewTest, FilterOverlappingColumn) {
+  View<Position, bool> view({&posColumn, &boolColumn});
+  // Filtering on a column which overlaps with the viewed columns should
+  // cause those entities to not appear when being iterated. Here, that is
+  // entity with id=2.
+  view.filterColumn(&floatColumn);
+  EXPECT_EQ(std::distance(view.begin(), view.end()), 1);
+  // Only entity with id=0 should remain.
+  auto [entityId, pos, b] = *view.begin();
+  EXPECT_EQ(entityId, 0);
+  EXPECT_EQ(pos, (Position{1, 2}));
+  EXPECT_EQ(b, true);
 }
 
 }  // namespace bad::internal

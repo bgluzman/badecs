@@ -47,7 +47,7 @@ target_link_libraries(
         badecs
         gtest_main
 )
-if (WIN32)
+if (MSVC)
     target_compile_options(
             badecs_test
             PRIVATE
