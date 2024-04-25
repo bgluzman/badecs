@@ -7,11 +7,6 @@
 
 namespace bad {
 
-/// \brief A set of components to filter from a view.
-// TODO (bgluzman): should this be relocated?
-template <Component... Ts>
-inline constexpr internal::FilterList<Ts...> filter{};
-
 /// \brief A view into a set of components.
 /// \tparam Ts The types of components to view.
 template <Component... Ts>
