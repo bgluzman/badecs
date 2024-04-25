@@ -27,6 +27,9 @@ class ViewImpl {
   static_assert(sizeof...(Ts) > 0, "View must have at least one component");
 
 public:
+  /// \brief Default constructor which creates an empty view.
+  ViewImpl() : isEmpty_(true) {}
+
   /// \brief Constructs a view from a set of columns.
   /// \param columns The columns to view.
   explicit ViewImpl(std::array<internal::Column *, sizeof...(Ts)> columns)
@@ -164,9 +167,11 @@ public:
   }
 
 private:
-  bool                                           isEmpty_;
-  ColumnArray                                    columns_;
-  typename ColumnArray::size_type                minIdx_;
+  using IdxType = typename ColumnArray::size_type;
+
+  bool        isEmpty_ = false;
+  ColumnArray columns_ = {nullptr};
+  IdxType     minIdx_ = std::numeric_limits<std::size_t>::max();
   std::vector<gsl::not_null<internal::Column *>> filters_ = {};
 };
 

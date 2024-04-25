@@ -402,6 +402,9 @@ protected:
 };
 
 TEST_F(ViewImplTest, EmptyView) {
+  ViewImpl<Position> emptyView;
+  EXPECT_EQ(emptyView.begin(), emptyView.end());
+
   ViewImpl<Position> nullView1({nullptr});
   EXPECT_EQ(nullView1.begin(), nullView1.end());
   ViewImpl<Position, int> nullView2({&posColumn, nullptr});
