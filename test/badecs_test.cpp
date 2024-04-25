@@ -2,6 +2,7 @@
 #include <badecs/internal/Column.h>
 #include <badecs/internal/Components.h>
 #include <badecs/internal/Entities.h>
+#include <badecs/internal/ViewImpl.h>
 #include <gtest/gtest.h>
 #include <map>
 #include <ostream>
@@ -15,7 +16,8 @@ std::ostream& operator<<(std::ostream& os, const Position& position) {
   return os << "Position{x=" << position.x << ", y=" << position.y << "}";
 }
 
-namespace bad::internal {
+namespace bad {
+namespace internal {
 
 template <typename T>
 testing::AssertionResult TestColumnValue(const Column& column,
@@ -384,7 +386,7 @@ TEST(EntitiesTest, Remove) {
   EXPECT_FALSE(entities.has(id));
 }
 
-class ViewTest : public testing::Test {
+class ViewImplTest : public testing::Test {
 protected:
   void SetUp() override {
     posColumn.emplace<Position>(0, 1, 2);
@@ -399,23 +401,23 @@ protected:
   Column posColumn, intColumn, boolColumn, floatColumn;
 };
 
-TEST_F(ViewTest, EmptyView) {
-  View<Position> nullView1({nullptr});
+TEST_F(ViewImplTest, EmptyView) {
+  ViewImpl<Position> nullView1({nullptr});
   EXPECT_EQ(nullView1.begin(), nullView1.end());
-  View<Position, int> nullView2({&posColumn, nullptr});
+  ViewImpl<Position, int> nullView2({&posColumn, nullptr});
   EXPECT_EQ(nullView2.begin(), nullView2.end());
 
-  Column      emptyColumn;
-  View<float> emptyColumnView1({&emptyColumn});
+  Column          emptyColumn;
+  ViewImpl<float> emptyColumnView1({&emptyColumn});
   EXPECT_EQ(emptyColumnView1.begin(), emptyColumnView1.end());
-  View<Position, float> emptyColumnView2({&posColumn, &emptyColumn});
+  ViewImpl<Position, float> emptyColumnView2({&posColumn, &emptyColumn});
   EXPECT_EQ(emptyColumnView2.begin(), emptyColumnView2.end());
 }
 
-TEST_F(ViewTest, SingleComponent) {
-  View<Position> view({&posColumn});
-  auto           begin = view.begin();
-  auto           end = view.end();
+TEST_F(ViewImplTest, SingleComponent) {
+  ViewImpl<Position> view({&posColumn});
+  auto               begin = view.begin();
+  auto               end = view.end();
 
   EXPECT_EQ(std::distance(begin, end), posColumn.size());
 
@@ -431,8 +433,8 @@ TEST_F(ViewTest, SingleComponent) {
   }
 }
 
-TEST_F(ViewTest, MultiComponent) {
-  View<Position, bool> view({&posColumn, &boolColumn});
+TEST_F(ViewImplTest, MultiComponent) {
+  ViewImpl<Position, bool> view({&posColumn, &boolColumn});
 
   // Construct a map of the relationships from the view since iteration order
   // is not guaranteed.
@@ -455,29 +457,29 @@ TEST_F(ViewTest, MultiComponent) {
   EXPECT_EQ(std::get<1>(viewData[2]), false);
 }
 
-TEST_F(ViewTest, EmptyIntersection) {
+TEST_F(ViewImplTest, EmptyIntersection) {
   // `intColumn` and `boolColumn` have disjoint sets of entities.
-  View<Position, int, bool> view({&posColumn, &intColumn, &boolColumn});
+  ViewImpl<Position, int, bool> view({&posColumn, &intColumn, &boolColumn});
   EXPECT_EQ(view.begin(), view.end());
 }
 
-TEST_F(ViewTest, FilterViewedColumn) {
-  View<Position, bool> view({&posColumn, &boolColumn});
+TEST_F(ViewImplTest, FilterViewedColumn) {
+  ViewImpl<Position, bool> view({&posColumn, &boolColumn});
   // Filtering on any column which is viewed results in no values iterated.
   view.filterColumn(&boolColumn);
   EXPECT_EQ(view.begin(), view.end());
 }
 
-TEST_F(ViewTest, FilterDisjointColumn) {
-  View<Position, bool> view({&posColumn, &boolColumn});
+TEST_F(ViewImplTest, FilterDisjointColumn) {
+  ViewImpl<Position, bool> view({&posColumn, &boolColumn});
   // Filtering on a column which is disjoint w.r.t. the viewed columns should
   // not impact the values iterated.
   view.filterColumn(&intColumn);
   EXPECT_EQ(std::distance(view.begin(), view.end()), 2);
 }
 
-TEST_F(ViewTest, FilterOverlappingColumn) {
-  View<Position, bool> view({&posColumn, &boolColumn});
+TEST_F(ViewImplTest, FilterOverlappingColumn) {
+  ViewImpl<Position, bool> view({&posColumn, &boolColumn});
   // Filtering on a column which overlaps with the viewed columns should
   // cause those entities to not appear when being iterated. Here, that is
   // entity with id=2.
@@ -490,4 +492,21 @@ TEST_F(ViewTest, FilterOverlappingColumn) {
   EXPECT_EQ(b, true);
 }
 
-}  // namespace bad::internal
+}  // namespace internal
+
+// User-facing API tests.
+
+// TODO (bgluzman): remove in favor of higher-level tests of views...
+TEST(ViewTest, SingleEntityView) {
+  internal::Column posColumn;
+  posColumn.emplace<Position>(0, 1, 2);
+  internal::ViewImpl<Position> viewImpl({&posColumn});
+
+  View<Position> view(std::move(viewImpl));
+  auto           begin = view.begin();
+  auto           end = view.end();
+  ASSERT_EQ(std::distance(begin, end), 1);
+  EXPECT_EQ(*begin, (std::tuple{0, Position{1, 2}}));
+}
+
+}  // namespace bad
