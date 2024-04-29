@@ -65,7 +65,7 @@ public:
 
   public:
     using difference_type = std::ptrdiff_t;
-    using value_type = std::tuple<EntityId, Ts...>;
+    using value_type = std::tuple<EntityId, Ts&...>;
     using pointer = void;
     using reference = value_type&;
     using iterator_category = std::forward_iterator_tag;
