@@ -1,4 +1,5 @@
 #include <badecs/Filter.h>
+#include <badecs/Registry.h>
 #include <badecs/View.h>
 #include <badecs/internal/Column.h>
 #include <badecs/internal/Components.h>

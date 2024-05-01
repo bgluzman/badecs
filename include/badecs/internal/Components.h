@@ -4,6 +4,8 @@
 #include <any>
 #include <badecs/Common.h>
 #include <badecs/internal/Column.h>
+#include <badecs/internal/FilterList.h>
+#include <badecs/internal/ViewImpl.h>
 #include <ranges>
 #include <unordered_map>
 
