@@ -5,7 +5,6 @@
 #include <badecs/internal/Entities.h>
 #include <badecs/internal/ViewImpl.h>
 #include <gtest/gtest.h>
-#include <map>
 #include <ostream>
 
 struct Position {
@@ -225,31 +224,30 @@ TEST(ColumnTest, Remove) {
 
 TEST(ColumnTest, Iterators) {
   Column column;
-  // Initialize a map of test positions to whether they have been found in the
-  // column. We will iterate over the column and mark each position as found.
-  std::map<Position, bool> positions = {
-      {Position{1, 2}, false},
-      {Position{3, 4}, false},
-      {Position{5, 6}, false},
-  };
 
   // Initialize column.
-  EntityId id = 0;
-  for (const auto& [pos, _] : positions) {
-    column.set(id++, pos);
-  }
+  column.emplace<Position>(0, 1, 2);
+  column.emplace<Position>(1, 3, 4);
+  column.emplace<Position>(2, 5, 6);
   ASSERT_EQ(column.size(), 3);
 
-  // Iterate over the column and mark each position as found if it has not
-  // already been seen. If it has been seen, then fail.
-  for (const auto& [entityId, value] : column) {
-    auto pos = std::any_cast<Position>(value);
-    auto lookup = positions.find(pos);
-    ASSERT_NE(lookup, positions.end()) << "Unexpected position found " << pos;
-    if (lookup->second) {
-      FAIL() << "Position " << lookup->first << " was found twice";
+  // Ensure we see each expected entry exactly once.
+  for (auto& [entityId, value] : column) {
+    ASSERT_EQ(value.type(), (typeid(Position)));
+    auto position = std::any_cast<Position>(value);
+    switch (entityId) {
+    case 0:
+      EXPECT_EQ(position, (Position{1, 2}));
+      break;
+    case 1:
+      EXPECT_EQ(position, (Position{3, 4}));
+      break;
+    case 2:
+      EXPECT_EQ(position, (Position{5, 6}));
+      break;
+    default:
+      FAIL() << "Unexpected entityId " << entityId;
     }
-    lookup->second = true;
   }
 }
 
@@ -309,26 +307,22 @@ TEST_F(ViewImplTest, SingleComponent) {
 
 TEST_F(ViewImplTest, MultiComponent) {
   ViewImpl<Position, bool> view({&posColumn, &boolColumn});
-
-  // Construct a map of the relationships from the view since iteration order
-  // is not guaranteed.
-  std::map<EntityId, std::tuple<Position, bool>> viewData;
-  std::transform(view.begin(), view.end(),
-                 std::inserter(viewData, viewData.end()),
-                 [](const auto& tuple) {
-                   auto [entityId, pos, b] = tuple;
-                   return std::make_pair(entityId, std::make_tuple(pos, b));
-                 });
-
-  EXPECT_EQ(viewData.size(), 2);
-
-  ASSERT_TRUE(viewData.contains(0));
-  EXPECT_EQ(std::get<0>(viewData[0]), (Position{1, 2}));
-  EXPECT_EQ(std::get<1>(viewData[0]), true);
-
-  ASSERT_TRUE(viewData.contains(2));
-  EXPECT_EQ(std::get<0>(viewData[2]), (Position{5, 6}));
-  EXPECT_EQ(std::get<1>(viewData[2]), false);
+  EXPECT_EQ(std::distance(view.begin(), view.end()), 2);
+  for (auto [entityId, pos, b] : view) {
+    SCOPED_TRACE("entityId=" + std::to_string(entityId));
+    switch (entityId) {
+    case 0:
+      EXPECT_EQ(pos, (Position{1, 2}));
+      EXPECT_EQ(b, true);
+      break;
+    case 2:
+      EXPECT_EQ(pos, (Position{5, 6}));
+      EXPECT_EQ(b, false);
+      break;
+    default:
+      FAIL() << "Unexpected entityId " << entityId;
+    }
+  }
 }
 
 TEST_F(ViewImplTest, EmptyIntersection) {
@@ -531,7 +525,6 @@ TYPED_TEST_P(ComponentsViewTest, UnfilteredView) {
 
   EXPECT_EQ(std::distance(begin, end), 3);
 
-  // TODO (bgluzman): move to this style for tests using std::map?
   for (auto [entityId, posVal, intVal] : view) {
     static_assert(std::is_same_v<decltype(entityId), EntityId>,
                   "entityId is not an EntityId");
