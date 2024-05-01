@@ -7,13 +7,17 @@
 
 namespace bad {
 
+// TODO (bgluzman): Should we just convert ViewImpl into ViewBuilder and move
+//  the iteration logic into here? If not, we should expand the documentation
+//  around iterator types here for end-users.
+
 /// \brief A view into a set of components.
 /// \tparam Ts The types of components to view.
 template <Component... Ts>
 class View {
 
 public:
-  /// \brief [FOR INTERNAL USAGE] Constructs a view.
+  /// \brief [FOR INTERNAL USE] Constructs a view.
   explicit View(internal::ViewImpl<Ts...> impl) : impl_(std::move(impl)) {}
 
   /// \brief Returns an iterator to the beginning of the view.

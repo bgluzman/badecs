@@ -1,3 +1,4 @@
+#include <badecs/Filter.h>
 #include <badecs/View.h>
 #include <badecs/internal/Column.h>
 #include <badecs/internal/Components.h>
@@ -293,6 +294,10 @@ TEST_F(ViewImplTest, SingleComponent) {
   for (auto [columnKV, viewTuple] : std::views::zip(posColumn, view)) {
     auto [columnEntityId, posAny] = columnKV;
     auto [viewEntityId, viewPos] = viewTuple;
+    static_assert(std::is_same_v<decltype(viewEntityId), EntityId>,
+                  "columnEntityId is not an EntityId");
+    static_assert(std::is_same_v<decltype(viewPos), Position&>,
+                  "viewPos has incorrect type");
     SCOPED_TRACE("columnEntityId=" + std::to_string(columnEntityId) +
                  ", viewEntityId=" + std::to_string(viewEntityId));
     ASSERT_TRUE(posAny.has_value());
@@ -494,6 +499,118 @@ TEST(ComponentsTest, RemoveAll) {
   EXPECT_EQ(components.has<Position>(10), false);
   EXPECT_EQ(components.get<Position>(10), nullptr);
 }
+
+// We test Components::view() for both const and non-const overloads.
+template <typename T>
+class ComponentsViewTest : public testing::Test {
+
+protected:
+  void SetUp() override {
+    components.emplace<Position>(0, 1, 2);
+    components.emplace<Position>(1, 3, 4);
+    components.emplace<Position>(2, 5, 6);
+    components.emplace<Position>(3, 7, 8);
+    components.set<int>(0, 42);
+    components.set<int>(2, 123);
+    components.set<int>(3, 456);
+    components.set<bool>(0, true);
+    components.set<bool>(2, true);
+    components.set<float>(3, 3.14f);
+  }
+
+  Components components;
+};
+TYPED_TEST_SUITE_P(ComponentsViewTest);
+
+TYPED_TEST_P(ComponentsViewTest, UnfilteredView) {
+  // Create a view of the components.
+  auto view =
+      const_cast<TypeParam&>(this->components).template view<Position, int>();
+  auto begin = view.begin();
+  auto end = view.end();
+
+  EXPECT_EQ(std::distance(begin, end), 3);
+
+  // TODO (bgluzman): move to this style for tests using std::map?
+  for (auto [entityId, posVal, intVal] : view) {
+    static_assert(std::is_same_v<decltype(entityId), EntityId>,
+                  "entityId is not an EntityId");
+    if constexpr (std::is_const_v<TypeParam>) {
+      static_assert(std::is_same_v<decltype(posVal), const Position&>,
+                    "posVal has the wrong type");
+      static_assert(std::is_same_v<decltype(intVal), const int&>,
+                    "intVal has the wrong type");
+    } else {
+      static_assert(std::is_same_v<decltype(posVal), Position&>,
+                    "posVal has the wrong type");
+      static_assert(std::is_same_v<decltype(intVal), int&>,
+                    "intVal has the wrong type");
+    }
+
+    SCOPED_TRACE("entityId=" + std::to_string(entityId));
+    switch (entityId) {
+    case 0:
+      EXPECT_EQ(posVal, (Position{1, 2}));
+      EXPECT_EQ(intVal, 42);
+      break;
+    case 2:
+      EXPECT_EQ(posVal, (Position{5, 6}));
+      EXPECT_EQ(intVal, 123);
+      break;
+    case 3:
+      EXPECT_EQ(posVal, (Position{7, 8}));
+      EXPECT_EQ(intVal, 456);
+      break;
+    default:
+      FAIL() << "Unexpected entityId " << entityId;
+    }
+  }
+}
+
+TYPED_TEST_P(ComponentsViewTest, FilteredView) {
+  // Create a view of the components filtered by just one column type.
+  auto view = const_cast<TypeParam&>(this->components)
+                  .template view<Position>(filter<bool>);
+  auto begin = view.begin();
+  auto end = view.end();
+
+  EXPECT_EQ(std::distance(begin, end), 2);
+  for (auto [entityId, posVal] : view) {
+    SCOPED_TRACE("entityId=" + std::to_string(entityId));
+    switch (entityId) {
+    case 1:
+      EXPECT_EQ(posVal, (Position{3, 4}));
+      break;
+    case 3:
+      EXPECT_EQ(posVal, (Position{7, 8}));
+      break;
+    default:
+      FAIL() << "Unexpected entityId " << entityId;
+    }
+  }
+
+  // Create a view of the components filtered by two column types.
+  view = const_cast<TypeParam&>(this->components)
+             .template view<Position>(filter<bool, float>);
+  begin = view.begin();
+  end = view.end();
+  EXPECT_EQ(std::distance(begin, end), 1);
+  for (auto [entityId, posVal] : view) {
+    SCOPED_TRACE("entityId=" + std::to_string(entityId));
+    switch (entityId) {
+    case 1:
+      EXPECT_EQ(posVal, (Position{3, 4}));
+      break;
+    default:
+      FAIL() << "Unexpected entityId " << entityId;
+    }
+  }
+}
+
+using ComponentsViewTypes = ::testing::Types<Components, const Components>;
+REGISTER_TYPED_TEST_SUITE_P(ComponentsViewTest, UnfilteredView, FilteredView);
+INSTANTIATE_TYPED_TEST_SUITE_P(ComponentsViewTests, ComponentsViewTest,
+                               ComponentsViewTypes);
 
 }  // namespace internal
 

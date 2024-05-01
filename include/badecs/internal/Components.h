@@ -93,7 +93,60 @@ public:
     return nullptr;
   }
 
+  /// Returns an iterable view over the specified component types.
+  /// \tparam Ts The types of components to view.
+  /// \tparam Filters The filters to apply to the view.
+  /// \return An iterable view object.
+  template <Component... Ts, FilterListLike Filters = FilterList<>>
+  ViewImpl<Ts...> view(Filters = {}) {
+    ViewImpl<Ts...> view{{GetColumn<Ts>()...}};
+    addFilters<Filters>(view);
+    return view;
+  }
+
+  /// Returns an iterable view over the specified component types.
+  /// \tparam Ts The types of components to view.
+  /// \tparam Filters The filters to apply to the view.
+  /// \return An iterable view object.
+  template <Component... Ts, FilterListLike Filters = FilterList<>>
+  ViewImpl<const Ts...> view(Filters = {}) const {
+    // const-cast here is fine since the returned view is unable to modify the
+    // contents of these columns.
+    ViewImpl<const Ts...> view{{const_cast<Column *>(GetColumn<Ts>())...}};
+    addFilters<Filters>(view);
+    return view;
+  }
+
 private:
+  template <Component T>
+  Column *GetColumn() {
+    return const_cast<Column *>(
+        const_cast<const Components *>(this)->GetColumn<T>());
+  }
+
+  template <Component T>
+  const Column *GetColumn() const {
+    if (auto it = components_.find(componentId<T>); it != components_.end()) {
+      return &it->second;
+    }
+    return nullptr;
+  }
+
+  template <FilterListLike Filters, typename View>
+  void addFilters(View& view) const {
+    using Head = typename Filters::Head;
+    using Tail = typename Filters::Tail;
+    if constexpr (!std::is_same_v<Head, void>) {
+      if (auto it = components_.find(componentId<typename Filters::Head>);
+          it != components_.end()) {
+        view.filterColumn(gsl::not_null(&it->second));
+      }
+    }
+    if constexpr (!std::is_same_v<Tail, void>) {
+      addFilters<Tail>(view);
+    }
+  }
+
   std::unordered_map<ComponentId, Column> components_;
 };
 

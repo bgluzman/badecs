@@ -51,8 +51,8 @@ public:
 
   /// \brief Add column whose entity-ids will be filtered from the view.
   /// \param column The column to filter.
-  void filterColumn(gsl::not_null<internal::Column *> column) {
-    filters_.push_back(column);
+  void filterColumn(gsl::not_null<const internal::Column *> column) {
+    filters_.emplace_back(column);
   }
 
   /// \brief An iterator over the components in the view.
@@ -78,9 +78,10 @@ public:
     /// \param filters The columns holding the entity-ids to filter.
     /// \param begin The starting position within the underlying iterator.
     /// \param end The end position with the underlying iterator.
-    Iterator(ColumnArray                                           cols,
-             const std::vector<gsl::not_null<internal::Column *>>& filters,
-             UnderlyingIter begin, UnderlyingIter end)
+    Iterator(
+        ColumnArray                                                 cols,
+        const std::vector<gsl::not_null<const internal::Column *>>& filters,
+        UnderlyingIter begin, UnderlyingIter end)
         : columns_(cols), filters_(filters), it_(begin), end_(end) {
       advance();  // Start at the first position that is valid and not filtered.
     }
@@ -139,10 +140,10 @@ public:
       }
     }
 
-    ColumnArray                                    columns_;
-    std::vector<gsl::not_null<internal::Column *>> filters_;
-    UnderlyingIter                                 it_;
-    UnderlyingIter                                 end_;
+    ColumnArray                                          columns_;
+    std::vector<gsl::not_null<const internal::Column *>> filters_;
+    UnderlyingIter                                       it_;
+    UnderlyingIter                                       end_;
   };
   static_assert(std::forward_iterator<Iterator>);
 
@@ -172,7 +173,7 @@ private:
   bool        isEmpty_ = false;
   ColumnArray columns_ = {nullptr};
   IdxType     minIdx_ = std::numeric_limits<std::size_t>::max();
-  std::vector<gsl::not_null<internal::Column *>> filters_ = {};
+  std::vector<gsl::not_null<const internal::Column *>> filters_ = {};
 };
 
 }  // namespace bad::internal
