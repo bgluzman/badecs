@@ -49,10 +49,13 @@ public:
     return false;
   }
 
-  template <std::ranges::range Range>
-    requires(
-        std::is_convertible_v<std::ranges::range_value_t<Range>, ComponentId>)
-  void remove(EntityId entity, const Range& components) {
+  /// Removes the components of the given types for the given entity.
+  /// \tparam ComponentRange A range of component-ids to remove.
+  /// \param entity The entity from which to remove the components.
+  template <std::ranges::range ComponentRange>
+    requires(std::is_convertible_v<std::ranges::range_value_t<ComponentRange>,
+                                   ComponentId>)
+  void remove(EntityId entity, const ComponentRange& components) {
     for (ComponentId component : components) {
       if (auto it = components_.find(component); it != components_.end()) {
         it->second.remove(entity);
