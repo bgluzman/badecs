@@ -3,6 +3,7 @@
 
 #include <badecs/Common.h>
 #include <badecs/Filter.h>
+#include <badecs/View.h>
 #include <badecs/internal/Components.h>
 #include <badecs/internal/Entities.h>
 
@@ -16,54 +17,86 @@ namespace bad {
 class Registry {
 
 public:
-  // TODO (bgluzman): docstring
+  /// Creates a new entity.
+  /// @return The entity-id of the newly created entity.
   EntityId createEntity();
 
-  // TODO (bgluzman): docstring
+  /// Reserves an entity-id without instantiating it.
+  /// @return The reserved entity-id.
   EntityId reserveEntity();
 
-  // TODO (bgluzman): docstring
+  /// Instantiates an entity with the given entity-id.
+  /// @param id The entity-id of the entity to instantiate.
   void instantiateEntity(EntityId id);
 
-  // TODO (bgluzman): docstring
+  /// Destroys an entity with the given entity-id.
+  /// @param id The entity-id of the entity to destroy.
   bool destroyEntity(EntityId id);
 
-  // TODO (bgluzman): docstring
+  /// Checks if an entity with the given entity-id exists.
+  /// @param id The entity-id to check.
+  /// @return True if the entity exists, false otherwise.
   bool hasEntity(EntityId id) const noexcept;
 
-  // TODO (bgluzman): docstring
+  /// Creates a component in-place for the given entity-id.
+  /// @param entity The entity-id for which we create the component.
+  /// @param args The arguments to the component constructor.
+  /// @tparam T The type of the component.
+  /// @tparam Ts The types of the constructor arguments.
   template <Component T, typename... Ts>
   void emplaceComponent(EntityId entity, Ts&&...args);
 
-  // TODO (bgluzman): docstring
+  /// Sets a component for the given entity-id.
+  /// @param entity The entity-id for which we set the component.
+  /// @param value The value of the component.
+  /// @tparam T The type of the component.
   template <Component T>
   void setComponent(EntityId entity, const T& value);
 
-  // TODO (bgluzman): docstring
+  /// Removes a component from the given entity.
+  /// @param entity The entity-id from which we remove the component.
+  /// @tparam T The type of the component.
   template <Component T>
   bool removeComponent(EntityId entity);
 
-  // TODO (bgluzman): docstring
+  /// Checks if an entity has a component of the given type.
+  /// @param entity The entity-id to check.
+  /// @tparam T The type of the component.
+  /// @return True if the entity has the component, false otherwise.
   template <Component T>
   bool hasComponent(EntityId entity) const noexcept;
 
-  // TODO (bgluzman): docstring
+  /// Gets a component for the given entity-id.
+  /// @param entity The entity-id from which we get the component.
+  /// @tparam T The type of the component.
+  /// @return A pointer to the component if it exists, nullptr otherwise.
   template <Component T>
   T *getComponent(EntityId entity);
 
-  // TODO (bgluzman): docstring
+  /// Gets a component for the given entity-id.
+  /// @param entity The entity-id from which we get the component.
+  /// @tparam T The type of the component.
+  /// @return A pointer to the component if it exists, nullptr otherwise.
   template <Component T>
   const T *getComponent(EntityId entity) const;
 
-  // TODO (bgluzman): docstring
+  /// Returns a view over the entities with the given components and filters.
+  /// @param filters The components to filter from the view.
+  /// @tparam Components The components constituting the view.
+  /// @tparam Filters The filters to apply to the view.
+  /// @return An iterable view, returning a tuple of the requested components.
   template <Component... Components,
             internal::FilterListLike Filters = internal::FilterList<>>
-  auto view(Filters = filter<>);
+  View<Components...> view(Filters = filter<>);
 
-  // TODO (bgluzman): docstring
+  /// Returns a view over the entities with the given components and filters.
+  /// @param filters The components to filter from the view.
+  /// @tparam Components The components constituting the view.
+  /// @tparam Filters The filters to apply to the view.
+  /// @return An iterable view, returning a tuple of the requested components.
   template <Component... Components,
             internal::FilterListLike Filters = internal::FilterList<>>
-  auto view(Filters = filter<>) const;
+  View<Components...> view(Filters = filter<>) const;
 
 private:
   internal::Entities   entities_ = {};
