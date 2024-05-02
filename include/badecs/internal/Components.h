@@ -49,11 +49,14 @@ public:
     return false;
   }
 
-  template <Component T, std::ranges::range Range>
-    requires(std::is_convertible_v<std::ranges::range_value_t<Range>, EntityId>)
-  void removeAll(const Range& entities) {
-    for (EntityId entity : entities) {
-      remove<T>(entity);
+  template <std::ranges::range Range>
+    requires(
+        std::is_convertible_v<std::ranges::range_value_t<Range>, ComponentId>)
+  void remove(EntityId entity, const Range& components) {
+    for (ComponentId component : components) {
+      if (auto it = components_.find(component); it != components_.end()) {
+        it->second.remove(entity);
+      }
     }
   }
 

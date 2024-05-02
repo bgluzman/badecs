@@ -19,24 +19,35 @@ class Registry {
 public:
   /// Creates a new entity.
   /// @return The entity-id of the newly created entity.
-  EntityId createEntity();
+  EntityId createEntity() {
+    EntityId id = reserveEntity();
+    instantiateEntity(id);
+    return id;
+  }
 
   /// Reserves an entity-id without instantiating it.
   /// @return The reserved entity-id.
-  EntityId reserveEntity();
+  EntityId reserveEntity() { return entities_.reserve(); }
 
   /// Instantiates an entity with the given entity-id.
   /// @param id The entity-id of the entity to instantiate.
-  void instantiateEntity(EntityId id);
+  void instantiateEntity(EntityId id) { entities_.instantiate(id); }
 
   /// Destroys an entity with the given entity-id.
   /// @param id The entity-id of the entity to destroy.
-  bool destroyEntity(EntityId id);
+  bool destroyEntity(EntityId id) {
+    if (auto components = entities_.remove(id); components.has_value()) {
+      // XXX: Cannot call removeComponent since the entity is already removed.
+      components_.remove(id, *components);
+      return true;
+    }
+    return false;
+  }
 
   /// Checks if an entity with the given entity-id exists.
   /// @param id The entity-id to check.
   /// @return True if the entity exists, false otherwise.
-  bool hasEntity(EntityId id) const noexcept;
+  bool hasEntity(EntityId id) const noexcept { return entities_.has(id); }
 
   /// Creates a component in-place for the given entity-id.
   /// @param entity The entity-id for which we create the component.

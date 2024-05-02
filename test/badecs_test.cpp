@@ -472,27 +472,24 @@ TEST(ComponentsTest, RemoveAll) {
 
   // Initialize components.
   components.emplace<Position>(0, 1, 2);
+  components.emplace<int>(0, 42);
+
   components.emplace<Position>(1, 3, 4);
-  components.emplace<Position>(2, 5, 6);
 
   // Test removal of a set of entities.
   ASSERT_TRUE(components.has<Position>(0));
   ASSERT_TRUE(TestComponentValue(components, 0, Position{1, 2}));
+  ASSERT_TRUE(components.has<int>(0));
+  ASSERT_TRUE(TestComponentValue(components, 0, 42));
   ASSERT_TRUE(components.has<Position>(1));
   ASSERT_TRUE(TestComponentValue(components, 1, Position{3, 4}));
-  ASSERT_TRUE(components.has<Position>(2));
-  ASSERT_TRUE(TestComponentValue(components, 2, Position{5, 6}));
-  ASSERT_EQ(components.has<Position>(10), false);
-  ASSERT_EQ(components.get<Position>(10), nullptr);
-  components.removeAll<Position>(std::vector{0U, 2U, 10U});
-  EXPECT_EQ(components.has<Position>(0), false);
+  components.remove(0, std::vector{componentId<Position>, componentId<int>});
+  EXPECT_FALSE(components.has<Position>(0));
   EXPECT_EQ(components.get<Position>(0), nullptr);
+  EXPECT_FALSE(components.has<int>(0));
+  EXPECT_EQ(components.get<int>(0), nullptr);
   ASSERT_TRUE(components.has<Position>(1));
   EXPECT_TRUE(TestComponentValue(components, 1, Position{3, 4}));
-  EXPECT_EQ(components.has<Position>(2), false);
-  EXPECT_EQ(components.get<Position>(2), nullptr);
-  EXPECT_EQ(components.has<Position>(10), false);
-  EXPECT_EQ(components.get<Position>(10), nullptr);
 }
 
 // We test Components::view() for both const and non-const overloads.
@@ -609,6 +606,29 @@ INSTANTIATE_TYPED_TEST_SUITE_P(ComponentsViewTests, ComponentsViewTest,
 }  // namespace internal
 
 // User-facing API tests.
+
+TEST(RegistryTest, Entities) {
+  // NOTE: Testing the removal of components in the destruction behavior is done
+  // in the DestroyEntityWithComponents test below.
+
+  Registry registry;
+
+  EntityId entity = registry.createEntity();
+  EXPECT_TRUE(registry.hasEntity(entity));
+  EXPECT_TRUE(registry.destroyEntity(entity));
+  EXPECT_FALSE(registry.hasEntity(entity));
+
+  entity = registry.reserveEntity();
+  EXPECT_FALSE(registry.hasEntity(entity));
+  registry.instantiateEntity(entity);
+  EXPECT_TRUE(registry.hasEntity(entity));
+  EXPECT_TRUE(registry.destroyEntity(entity));
+  EXPECT_FALSE(registry.hasEntity(entity));
+}
+
+TEST(RegistryTest, DestroyEntityWithComponents) {
+  // TODO (bgluzman)
+}
 
 // TODO (bgluzman): remove in favor of higher-level tests of views...
 TEST(ViewTest, SingleEntityView) {
