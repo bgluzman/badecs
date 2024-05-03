@@ -57,7 +57,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           pip install gcovr
-          ./scripts/coverage-report.sh
+          ./scripts/coverage-report.sh --gcov-executable gcov-13
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest'
