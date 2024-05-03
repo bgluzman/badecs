@@ -146,8 +146,7 @@ TEST(ColumnTest, Emplace) {
   // Check that the value was emplaced.
   EXPECT_TRUE(TestColumnValue(column, 0, Position{1, 2}));
   // Check const-qualified get().
-  const auto *const_column = &column;
-  EXPECT_TRUE(TestColumnValue(*const_column, 0, Position{1, 2}));
+  EXPECT_TRUE(TestColumnValue(std::as_const(column), 0, Position{1, 2}));
 
   // Re-emplacement.
   column.emplace<Position>(0, 2, 3);
@@ -180,8 +179,7 @@ TEST(ColumnTest, Set) {
   // Check that the value was set.
   EXPECT_TRUE(TestColumnValue(column, 0, 1));
   // Check const-qualified get().
-  const auto *const_column = &column;
-  EXPECT_TRUE(TestColumnValue(*const_column, 0, 1));
+  EXPECT_TRUE(TestColumnValue(std::as_const(column), 0, 1));
 
   // Re-set.
   column.set(0, 2);
@@ -626,21 +624,107 @@ TEST(RegistryTest, Entities) {
   EXPECT_FALSE(registry.hasEntity(entity));
 }
 
-TEST(RegistryTest, DestroyEntityWithComponents) {
-  // TODO (bgluzman)
+TEST(RegistryTest, Components) {
+  Registry registry;
+
+  EntityId entity = registry.createEntity();
+  registry.emplaceComponent<Position>(entity, 1, 2);
+  registry.emplaceComponent<int>(entity, 42);
+  registry.emplaceComponent<bool>(entity, true);
+
+  ASSERT_TRUE(registry.hasComponent<Position>(entity));
+  ASSERT_TRUE(registry.hasComponent<int>(entity));
+  ASSERT_TRUE(registry.hasComponent<bool>(entity));
+
+  EXPECT_EQ(*registry.getComponent<Position>(entity), (Position{1, 2}));
+  EXPECT_EQ(*registry.getComponent<int>(entity), 42);
+  EXPECT_EQ(*registry.getComponent<bool>(entity), true);
+  {
+    // Just double-check everything work as expected for const.
+    auto const_registry = std::as_const(registry);
+    EXPECT_EQ(*const_registry.getComponent<Position>(entity), (Position{1, 2}));
+    EXPECT_EQ(*const_registry.getComponent<int>(entity), 42);
+    EXPECT_EQ(*const_registry.getComponent<bool>(entity), true);
+  }
+
+  registry.removeComponent<Position>(entity);
+  EXPECT_FALSE(registry.hasComponent<Position>(entity));
+  EXPECT_TRUE(registry.hasComponent<int>(entity));
+  EXPECT_TRUE(registry.hasComponent<bool>(entity));
+
+  registry.removeComponent<int>(entity);
+  EXPECT_FALSE(registry.hasComponent<int>(entity));
+  EXPECT_TRUE(registry.hasComponent<bool>(entity));
+
+  registry.removeComponent<bool>(entity);
+  EXPECT_FALSE(registry.hasComponent<bool>(entity));
 }
 
-// TODO (bgluzman): remove in favor of higher-level tests of views...
-TEST(ViewTest, SingleEntityView) {
-  internal::Column posColumn;
-  posColumn.emplace<Position>(0, 1, 2);
-  internal::ViewImpl<Position> viewImpl({&posColumn});
+TEST(RegistryTest, DestroyEntityWithComponents) {
+  Registry registry;
 
-  View<Position> view(std::move(viewImpl));
-  auto           begin = view.begin();
-  auto           end = view.end();
-  ASSERT_EQ(std::distance(begin, end), 1);
-  EXPECT_EQ(*begin, (std::tuple{0, Position{1, 2}}));
+  EntityId entity = registry.createEntity();
+  registry.emplaceComponent<Position>(entity, 1, 2);
+  registry.emplaceComponent<int>(entity, 42);
+  registry.emplaceComponent<bool>(entity, true);
+
+  EXPECT_TRUE(registry.hasComponent<Position>(entity));
+  EXPECT_TRUE(registry.hasComponent<int>(entity));
+  EXPECT_TRUE(registry.hasComponent<bool>(entity));
+
+  EXPECT_TRUE(registry.destroyEntity(entity));
+
+  EXPECT_FALSE(registry.hasEntity(entity));
+  EXPECT_FALSE(registry.hasComponent<Position>(entity));
+  EXPECT_FALSE(registry.hasComponent<int>(entity));
+  EXPECT_FALSE(registry.hasComponent<bool>(entity));
+}
+
+TEST(RegistryTest, View) {
+  Registry registry;
+
+  EntityId entity1 = registry.createEntity();
+  registry.emplaceComponent<Position>(entity1, 1, 2);
+  registry.emplaceComponent<int>(entity1, 42);
+  registry.emplaceComponent<bool>(entity1, true);
+
+  EntityId entity2 = registry.createEntity();
+  registry.emplaceComponent<Position>(entity2, 3, 4);
+  registry.emplaceComponent<int>(entity2, 43);
+  registry.emplaceComponent<bool>(entity2, false);
+
+  EntityId entity3 = registry.createEntity();
+  registry.emplaceComponent<Position>(entity3, 5, 6);
+  registry.emplaceComponent<int>(entity3, 44);
+  registry.emplaceComponent<bool>(entity3, true);
+
+  // Run checks in helper function to test const and non-const overloads.
+  auto check = [entity1, entity2, entity3](auto& registry) {
+    auto view = registry.template view<Position, int, bool>();
+    auto begin = view.begin();
+    auto end = view.end();
+    EXPECT_EQ(std::distance(begin, end), 3);
+    for (auto [entityId, posVal, intVal, boolVal] : view) {
+      SCOPED_TRACE("entityId=" + std::to_string(entityId));
+      if (entityId == entity1) {
+        EXPECT_EQ(posVal, (Position{1, 2}));
+        EXPECT_EQ(intVal, 42);
+        EXPECT_EQ(boolVal, true);
+      } else if (entityId == entity2) {
+        EXPECT_EQ(posVal, (Position{3, 4}));
+        EXPECT_EQ(intVal, 43);
+        EXPECT_EQ(boolVal, false);
+      } else if (entityId == entity3) {
+        EXPECT_EQ(posVal, (Position{5, 6}));
+        EXPECT_EQ(intVal, 44);
+        EXPECT_EQ(boolVal, true);
+      } else {
+        FAIL() << "Unexpected entityId " << entityId;
+      }
+    }
+  };
+  check(registry);
+  check(std::as_const(registry));
 }
 
 }  // namespace bad

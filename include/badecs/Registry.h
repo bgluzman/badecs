@@ -55,41 +55,57 @@ public:
   /// \param entity The entity-id for which we create the component.
   /// \param args The arguments to the component constructor.
   template <Component T, typename... Ts>
-  void emplaceComponent(EntityId entity, Ts&&...args);
+  void emplaceComponent(EntityId entity, Ts&&...args) {
+    entities_.addComponent(entity, componentId<T>);
+    components_.emplace<T>(entity, std::forward<Ts>(args)...);
+  }
 
   /// Sets a component for the given entity-id.
   /// \tparam T The type of the component.
   /// \param entity The entity-id for which we set the component.
   /// \param value The value of the component.
   template <Component T>
-  void setComponent(EntityId entity, const T& value);
+  void setComponent(EntityId entity, const T& value) {
+    entities_.addComponent(entity, componentId<T>);
+    components_.set(entity, value);
+  }
 
   /// Removes a component from the given entity.
   /// \tparam T The type of the component.
   /// \param entity The entity-id from which we remove the component.
   template <Component T>
-  bool removeComponent(EntityId entity);
+  bool removeComponent(EntityId entity) {
+    entities_.removeComponent(entity, componentId<T>);
+    return components_.remove<T>(entity);
+  }
 
   /// Checks if an entity has a component of the given type.
   /// \param entity The entity-id to check.
   /// \tparam T The type of the component.
   /// \return True if the entity has the component, false otherwise.
   template <Component T>
-  bool hasComponent(EntityId entity) const noexcept;
+  bool hasComponent(EntityId entity) const noexcept {
+    return components_.has<T>(entity);
+  }
 
   /// Gets a component for the given entity-id.
   /// \tparam T The type of the component.
   /// \param entity The entity-id from which we get the component.
   /// \return A pointer to the component if it exists, nullptr otherwise.
   template <Component T>
-  T *getComponent(EntityId entity);
+  T *getComponent(EntityId entity) {
+    return const_cast<T *>(
+        const_cast<const Registry *>(this)->getComponent<T>(entity));
+  }
 
   /// Gets a component for the given entity-id.
   /// \tparam T The type of the component.
   /// \param entity The entity-id from which we get the component.
   /// \return A pointer to the component if it exists, nullptr otherwise.
   template <Component T>
-  const T *getComponent(EntityId entity) const;
+  const T *getComponent(EntityId entity) const {
+    return components_.get<T>(entity);
+  }
 
   /// Returns a view over the entities with the given components and filters.
   /// \tparam Components The components constituting the view.
@@ -98,7 +114,9 @@ public:
   /// \return An iterable view, returning a tuple of the requested components.
   template <Component... Components,
             internal::FilterListLike Filters = internal::FilterList<>>
-  View<Components...> view(Filters = filter<>);
+  View<Components...> view(Filters componentFilter = filter<>) {
+    return View(components_.view<Components...>(componentFilter));
+  }
 
   /// Returns a view over the entities with the given components and filters.
   /// \tparam Components The components constituting the view.
@@ -107,7 +125,9 @@ public:
   /// \return An iterable view, returning a tuple of the requested components.
   template <Component... Components,
             internal::FilterListLike Filters = internal::FilterList<>>
-  View<Components...> view(Filters = filter<>) const;
+  View<const Components...> view(Filters componentFilter = filter<>) const {
+    return View(components_.view<const Components...>(componentFilter));
+  }
 
 private:
   internal::Entities   entities_ = {};

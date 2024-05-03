@@ -107,7 +107,11 @@ public:
   /// \return An iterable view object.
   template <Component... Ts, FilterListLike Filters = FilterList<>>
   ViewImpl<Ts...> view(Filters = {}) {
-    ViewImpl<Ts...> view{{GetColumn<Ts>()...}};
+    ViewImpl<Ts...> view{
+        // Always remove cv-qualifiers from component types to ensure we are
+        // querying the correct columns. Types with different cv-qualifications
+        // will have different component-ids.
+        {GetColumn<std::remove_cv_t<Ts>>()...}};
     addFilters<Filters>(view);
     return view;
   }
@@ -118,9 +122,11 @@ public:
   /// \return An iterable view object.
   template <Component... Ts, FilterListLike Filters = FilterList<>>
   ViewImpl<const Ts...> view(Filters = {}) const {
-    // const-cast here is fine since the returned view is unable to modify the
-    // contents of these columns.
-    ViewImpl<const Ts...> view{{const_cast<Column *>(GetColumn<Ts>())...}};
+    ViewImpl<const Ts...> view{
+        // const-cast here is fine since the returned view is unable to modify
+        // the contents of these columns. See note in non-const overload for
+        // info on removing cv-qualifiers.
+        {const_cast<Column *>(GetColumn<std::remove_cv_t<Ts>>())...}};
     addFilters<Filters>(view);
     return view;
   }

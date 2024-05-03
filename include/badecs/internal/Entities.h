@@ -24,6 +24,19 @@ public:
     }
   }
 
+  /// \brief Removes the given entity and returns its components.
+  /// \param id The entity ID to remove.
+  /// \return The components of the removed entity, or nullopt if the entity
+  /// does not exist.
+  std::optional<std::unordered_set<ComponentId>> remove(EntityId id) {
+    if (auto it = entities_.find(id); it != entities_.end()) {
+      auto components = it->second;
+      entities_.erase(it);
+      return components;
+    }
+    return std::nullopt;
+  }
+
   /// \brief Returns true if the given entity exists.
   /// \param id The entity ID to check.
   /// \return True if the entity exists.
@@ -60,19 +73,6 @@ public:
     if (auto it = entities_.find(entity); it != entities_.end()) {
       it->second.erase(component);
     }
-  }
-
-  /// \brief Removes the given entity and returns its components.
-  /// \param id The entity ID to remove.
-  /// \return The components of the removed entity, or nullopt if the entity
-  /// does not exist.
-  std::optional<std::unordered_set<ComponentId>> remove(EntityId id) {
-    if (auto it = entities_.find(id); it != entities_.end()) {
-      auto components = it->second;
-      entities_.erase(it);
-      return components;
-    }
-    return std::nullopt;
   }
 
 private:
