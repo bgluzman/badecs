@@ -514,8 +514,9 @@ TYPED_TEST_SUITE_P(ComponentsViewTest);
 
 TYPED_TEST_P(ComponentsViewTest, UnfilteredView) {
   // Create a view of the components.
-  auto view =
-      const_cast<TypeParam&>(this->components).template view<Position, int>();
+  auto view = const_cast<TypeParam&>(this->components)
+                  // Try adding a const qualifier to the viewed type.
+                  .template view<Position, const int>();
   auto begin = view.begin();
   auto end = view.end();
 
@@ -532,7 +533,10 @@ TYPED_TEST_P(ComponentsViewTest, UnfilteredView) {
     } else {
       static_assert(std::is_same_v<decltype(posVal), Position&>,
                     "posVal has the wrong type");
-      static_assert(std::is_same_v<decltype(intVal), int&>,
+      // Note the const-qualification here even though we are testing the
+      // non-const overload of `view()`. This is because we requested a const-
+      // qualified view over the `int` component.
+      static_assert(std::is_same_v<decltype(intVal), const int&>,
                     "intVal has the wrong type");
     }
 
